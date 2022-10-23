@@ -57,6 +57,16 @@ int pack_int(char* byte_array, int offset, int to_pack)
 
 int main()
 {
+    /* This section is just for the demo */
+    /* Get rid of it asap */
+
+    int active_games[100] = {0};
+    int active_game_index = 1;
+
+    /* *** */
+
+
+
     int sock_fd, new_fd; // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; // connector's address information
@@ -79,6 +89,8 @@ int main()
     int send_msg_len;
     int bytes_sent = 0;
     int bytes_packed = 0;
+
+    int msg_type;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
@@ -163,33 +175,79 @@ int main()
         {
             // this is the child process
             close(sock_fd); // child doesn't need the listener
-            recv(new_fd, recv_buf, 12, 0);
 
-            magic_bytes = unpack_int(recv_buf, bytes_read);
-            bytes_read += 4;
-            client_id = unpack_int(recv_buf, bytes_read);
-            bytes_read += 4;
-            msg_len = unpack_int(recv_buf, bytes_read);
-            bytes_read += 4;
+            while(1){
+                bytes_read = 0;
+                msg_len = 0;
+                send_msg_len = 0;
+                bytes_packed = 0;
 
-            printf("Magic bytes: 0x%x\nClient ID: 0x%x\nMsg size: 0x%x\n", magic_bytes, client_id, msg_len);
+                recv(new_fd, recv_buf, 12, 0);
 
-            memset(recv_buf, 0, 12);
-            if (msg_len < 1000)
-            {
-                recv(new_fd, recv_buf, msg_len, 0);
-            }
+                magic_bytes = unpack_int(recv_buf, bytes_read);
+                bytes_read += 4;
+                client_id = unpack_int(recv_buf, bytes_read);
+                bytes_read += 4;
+                msg_len = unpack_int(recv_buf, bytes_read);
+                bytes_read += 4;
 
-            printf("Message received: %s\n", recv_buf);
+                printf("Incomming message: \n");
+                printf("Client ID: 0x%x\nMsg size: 0x%x\n", client_id, msg_len);
 
-            send_msg_len = strlen("hello client!") + 1;
-            bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
-            bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
-            memcpy(send_buf + bytes_packed, "hello client!", send_msg_len);
-            printf("\nSending Response!\n");
-            if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
-            {
-                perror("send");
+                memset(recv_buf, 0, 12);
+                if (msg_len < 1000)
+                {
+                    recv(new_fd, recv_buf, msg_len, 0);
+                }
+                
+                bytes_read = 0;
+                msg_type = unpack_int(recv_buf, bytes_read);
+                bytes_read += 4;
+
+                if (msg_type == 0)
+                {
+                    send_msg_len = strlen("Hello client!") + 1;
+                    bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
+                    bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
+                    memcpy(send_buf + bytes_packed, "Hello client!", send_msg_len);
+                    printf("\nSending Response!\n");
+                    if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
+                    {
+                        perror("send");
+                    }
+                }
+                else if (msg_type == 2)
+                {
+                    msg_type = unpack_int(recv_buf, bytes_read);
+                    bytes_read += 4;
+                    printf("Join request for game: %d received\n", msg_type);
+
+                    send_msg_len = strlen("You have joined a game!") + 1;
+                    bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
+                    bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
+                    memcpy(send_buf + bytes_packed, "You have joined a game!", send_msg_len);
+                    printf("\nSending Response!\n");
+                    if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
+                    {
+                        perror("send");
+                    }
+                }
+                else if (msg_type == 3)
+                {
+                    printf("Create request received\n");
+                    printf("Game created: %d", active_game_index);
+                    active_game_index += 1;
+
+                    send_msg_len = strlen("Game created with id: 1") + 1;
+                    bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
+                    bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
+                    memcpy(send_buf + bytes_packed, "Game created with id: 1", send_msg_len);
+                    printf("\nSending Response!\n");
+                    if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
+                    {
+                        perror("send");
+                    }
+                }
             }
             close(new_fd);
             exit(0);
