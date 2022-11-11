@@ -1,3 +1,5 @@
+#include "server_to_game_interface.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
@@ -19,6 +21,12 @@
 
 #define PORT "8687"
 #define BACKLOG 10 // how many pending connections
+
+Response* parse_command(Command*);
+Command* alloc_command(int, char*, int);
+void free_response(Response*);
+
+int parse_msg(char**, char**, int);
 
 void sigchld_handler(int s)
 {
@@ -57,16 +65,6 @@ int pack_int(char* byte_array, int offset, int to_pack)
 
 int main()
 {
-    /* This section is just for the demo */
-    /* Get rid of it asap */
-
-    int active_games[100] = {0};
-    int active_game_index = 1;
-
-    /* *** */
-
-
-
     int sock_fd, new_fd; // listen on sock_fd, new connection on new_fd
     struct addrinfo hints, *servinfo, *p;
     struct sockaddr_storage their_addr; // connector's address information
@@ -77,14 +75,14 @@ int main()
     char s[INET_ADDRSTRLEN];
     int ret_code;
 
-    // Temporary: should be dyn on heap
-    char recv_buf[1024] = {0};
+    char* recv_buf;
+    char head_buf[12] = {0};
     int magic_bytes;
     int msg_len;
     int bytes_read = 0;
     int client_id;
 
-    char send_buf[1024] = {0};
+    char* send_buf = calloc(1000, sizeof(char));
     int send_magic_bytes = 0x1234;
     int send_msg_len;
     int bytes_sent = 0;
@@ -177,12 +175,13 @@ int main()
             close(sock_fd); // child doesn't need the listener
 
             while(1){
+                printf("Am I here?");
                 bytes_read = 0;
                 msg_len = 0;
                 send_msg_len = 0;
                 bytes_packed = 0;
 
-                recv(new_fd, recv_buf, 12, 0);
+                recv(new_fd, head_buf, 12, 0);
 
                 magic_bytes = unpack_int(recv_buf, bytes_read);
                 bytes_read += 4;
@@ -194,60 +193,37 @@ int main()
                 printf("Incomming message: \n");
                 printf("Client ID: 0x%x\nMsg size: 0x%x\n", client_id, msg_len);
 
-                memset(recv_buf, 0, 12);
-                if (msg_len < 1000)
+                memset(head_buf, 0, 12);
+                if (msg_len < 4 || msg_len > 1000)
                 {
-                    recv(new_fd, recv_buf, msg_len, 0);
-                }
-                
-                bytes_read = 0;
-                msg_type = unpack_int(recv_buf, bytes_read);
-                bytes_read += 4;
-
-                if (msg_type == 0)
-                {
-                    send_msg_len = strlen("Hello client!") + 1;
+                    send_msg_len = strlen("Bad message!\n") + 1;
                     bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
                     bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
-                    memcpy(send_buf + bytes_packed, "Hello client!", send_msg_len);
+                    memcpy(send_buf + bytes_packed, "Bad message!\n", send_msg_len);
                     printf("\nSending Response!\n");
                     if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
                     {
                         perror("send");
                     }
+                    continue;
                 }
-                else if (msg_type == 2)
-                {
-                    msg_type = unpack_int(recv_buf, bytes_read);
-                    bytes_read += 4;
-                    printf("Join request for game: %d received\n", msg_type);
+                recv_buf = calloc(msg_len, sizeof(char));
+                recv(new_fd, recv_buf, msg_len, 0);
 
-                    send_msg_len = strlen("You have joined a game!") + 1;
-                    bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
-                    bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
-                    memcpy(send_buf + bytes_packed, "You have joined a game!", send_msg_len);
-                    printf("\nSending Response!\n");
-                    if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
-                    {
-                        perror("send");
-                    }
-                }
-                else if (msg_type == 3)
+                send_msg_len = parse_msg(&recv_buf, (&send_buf + 8), msg_len);
+                printf("%d\n", send_msg_len);
+                bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
+                bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
+                printf("\nSending Response!\n");
+                if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
                 {
-                    printf("Create request received\n");
-                    printf("Game created: %d", active_game_index);
-                    active_game_index += 1;
-
-                    send_msg_len = strlen("Game created with id: 1") + 1;
-                    bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
-                    bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
-                    memcpy(send_buf + bytes_packed, "Game created with id: 1", send_msg_len);
-                    printf("\nSending Response!\n");
-                    if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
-                    {
-                        perror("send");
-                    }
+                    perror("send");
                 }
+                if (recv_buf != NULL)
+                {
+                    free(recv_buf);
+                }
+                memset(send_buf, 0, 1000);
             }
             close(new_fd);
             exit(0);
@@ -256,4 +232,54 @@ int main()
     }
 
     return 0;
+}
+
+int parse_msg(char** recv_buf, char** send_buf, int recv_buf_len)
+{
+    int bytes_read = 0;
+    int bytes_packed = 0;
+    int command_op;
+
+    int send_msg_len;
+
+    char* args;
+    int args_len = recv_buf_len - 4;
+
+    Command* command;
+    Response* response;
+    
+    command_op = unpack_int(*recv_buf, bytes_read);
+    bytes_read += 4;
+
+    if (command_op == 0)
+    {
+        // Client checkin message
+        send_msg_len = strlen("Hello client!") + 1;
+        memcpy(*send_buf, "Hello client!", send_msg_len);
+        printf("\nSending Response!\n");
+        return send_msg_len;
+    }
+    else
+    {
+        args = calloc(args_len, sizeof(char));
+        memcpy(args, (*recv_buf) + bytes_read, args_len);
+        command = alloc_command(command_op, args, args_len);
+        if (command == NULL)
+        {
+            printf("Command Allocation Error\n");
+            return 0;
+        }
+        response = parse_command(command);
+        if (response == NULL)
+        {
+            printf("Command parse error\n");
+            return 0;
+        }
+        send_msg_len = response->msg_len + sizeof(int)*2;
+        bytes_packed += pack_int(*send_buf, bytes_packed, response->ret_code);
+        bytes_packed += pack_int(*send_buf, bytes_packed, response->msg_len);
+        memcpy((*send_buf) + bytes_packed, response->msg, response->msg_len);
+        free_response(response);
+        return send_msg_len;
+    }
 }
