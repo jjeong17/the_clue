@@ -9,18 +9,19 @@ class Board{
         
         Board();
         void printBoard();
-        bool isRoom(int);
-        bool hallwayClear(int);
-        bool isAdjacent(int, int);
-        bool isPassage(int, int);
-        bool suggestionMove(std::string, std::string, int);
-        BoardObj getObj(BoardObj a, int loc);
-        bool removeObj(BoardObj a, int loc);
-        bool movePiece(BoardObj, int);
+        bool suggestionMove(BoardObj&, BoardObj&, int);
+        bool movePiece(BoardObj&, int);
         
 
 
     private:
+        bool isRoom(int);
+        bool hallwayClear(int);
+        bool isAdjacent(int, int);
+        bool isPassage(int, int);
+        BoardObj getObj(BoardObj a, int loc);
+        bool removeObj(BoardObj a, int loc);
+
         static const int num_locations = 21;
         static const int num_rooms = 9;
         static const int num_hallways = 12;

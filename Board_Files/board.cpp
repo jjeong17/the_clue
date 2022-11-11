@@ -116,27 +116,27 @@ bool Board::isPassage(int a, int b){
     return isPassage;
 }
 
-bool Board::suggestionMove(std::string curr_player,
-std::string suggested_player, int location){
+bool Board::suggestionMove(BoardObj& player,
+BoardObj& suggested_obj, int location){
+    if(!isRoom(location)){
+        std::cout << "is not a room" << std::endl;
+        return false;
+    }
     bool player_check = false;
     for(int i = 0; i < main_board[location].size(); ++i){
-        if(main_board[location][i].getName() == curr_player){
+        if(main_board[location][i].getName() == player.getName()){
             player_check = true;
         }
     }
     if(!player_check){
+        std::cout << "player in wrong location" << std::endl;
         return false;
     }
 
-    BoardObj my_obj = BoardObj();
-    for(int i = 0; i < num_locations; ++i){
-        for(int j = 0; j < main_board[i].size(); ++j){
-            if(main_board[i][j].getName() == suggested_player){
-                my_obj = main_board[i][j];
-                main_board[i].erase(main_board[i].begin() + j-1);
-            }
-        }
-    }
+    BoardObj my_obj = getObj(suggested_obj, suggested_obj.getLocation());
+    removeObj(suggested_obj, suggested_obj.getLocation());
+    my_obj.setLocation(location);
+    suggested_obj.setLocation(location);
     main_board[location].push_back(my_obj);
     return true;
 }
@@ -161,14 +161,17 @@ bool Board::removeObj(BoardObj a, int loc){
     return false;
 }
 
-bool Board::movePiece(BoardObj obj, int location){
+bool Board::movePiece(BoardObj& obj, int location){
     int curr_index = 0;
     if(isRoom(location)){
         if(isAdjacent(obj.getLocation(), location) || 
         isPassage(obj.getLocation(), location)){
             BoardObj temp = getObj(obj, obj.getLocation());
             removeObj(obj, obj.getLocation());
+            obj.setLocation(location);
+            temp.setLocation(location);
             main_board[location].push_back(temp);
+            
             return true;
         }
     }else{
@@ -176,6 +179,8 @@ bool Board::movePiece(BoardObj obj, int location){
         isAdjacent(obj.getLocation(), location)){
             BoardObj temp = getObj(obj, obj.getLocation());
             removeObj(obj, obj.getLocation());
+            obj.setLocation(location);
+            temp.setLocation(location);
             main_board[location].push_back(temp);
             
             return true;
