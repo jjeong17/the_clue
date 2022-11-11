@@ -3,6 +3,8 @@
 #incluce "BoardCharacter.hpp"
 
 int main(){
+    //test interface
+    
     
     Board a;
     a.print();
