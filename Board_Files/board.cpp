@@ -21,6 +21,13 @@ Board::Board(){
 
 
 
-void Board::print(){
-    std::cout << "board print" << std::endl;
+void Board::printBoard(){
+    std::cout << "print board" << std::endl;
+    for(int i = 0; i < num_locations; ++i){
+        std::cout << "row: " << i << std::endl;
+        for(int j = 0; j < main_board[i].size(); ++j){
+            std::cout << "\t" << main_board[i][j].getName() << std::endl;
+            
+        }
+    }
 }

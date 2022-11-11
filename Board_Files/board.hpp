@@ -7,13 +7,14 @@
 class Board{
     public:
         Board();
-        
+        void printBoard();
 
 
 
     private:
         static const int num_locations = 21;
-        vector<BoardObj> main_board[num_locations];
+        
+        std::vector<BoardObj> main_board[num_locations];
 
 
 

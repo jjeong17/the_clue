@@ -1,12 +1,12 @@
 #include <iostream>
 #include "board.hpp"
-#incluce "BoardObj.hpp"
+#include "BoardObj.hpp"
 
 int main(){
     //test interface
     
     
-    Board a;
-    a.print();
+    Board a = Board();
+    a.printBoard();
     return 0;
 }
