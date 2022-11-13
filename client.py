@@ -27,6 +27,25 @@ def craft_join_game_message(game_id: int):
     # message_type for join game = 2
     return struct.pack("!II", 2, game_id)
 
+def craft_roll_dice_message():
+    # message_type for roll dice = 4
+    return struct.pack("!I", 4)
+
+def craft_make_suggestion_message(card1: str, card2: str, card3: str):
+    # message_type for making a suggestion = 5
+    return struct.pack("!II", 5, card1, card2, card3)
+
+def craft_make_accusation_message(card1: str, card2: str, card3: str):
+    # message_type for making a suggestion = 6
+    return struct.pack("!II", 6, card1, card2, card3)
+
+def craft_end_turn_message():
+    # message_type for roll dice = 7
+    return struct.pack("!I", 7)
+
+def craft_leave_game_message():
+    # message_type for roll dice = 8
+    return struct.pack("!I", 8)
 
 def prep_msg_for_send(client_id: int, message: bytes):
     magic_bytes = 0x12345678
@@ -75,6 +94,11 @@ async def shell(client_id, conn_manager: Connection_Manager):
                 print("Help Menu:")
                 print("     game join <game id>")
                 print("     game create")
+                print("     roll")
+                print("     suggest <card1> <card2> <card3>")
+                print("     accuse <card1> <card2> <card3>")
+                print("     end turn")
+                print("     leave game")
                 continue
             else:
                 print(f"Unknown Command: {l[0]}")
@@ -94,6 +118,39 @@ async def shell(client_id, conn_manager: Connection_Manager):
             else:
                 print("command format not recognized")
                 continue
+        elif l[0] == "roll":
+            msg = prep_msg_for_send(client_id, craft_roll_dice_message())
+            await conn_manager.requests.put(msg)
+        elif l[0] == "suggest":
+            if len(l) == 4:
+                msg = prep_msg_for_send(client_id, craft_make_suggestion_message(l[1], l[2], l[3]))
+                await conn_manager.requests.put(msg)
+            else:
+                print("suggest: command format not recognized.  Please enter:")
+                print("     suggest <card1> <card2> <card3>")
+                continue
+        elif l[0] == "accuse":
+            if len(l) == 4:
+                msg = prep_msg_for_send(client_id, craft_make_accusation_message(l[1], l[2], l[3]))
+                await conn_manager.requests.put(msg)
+            else:
+                print("accuse: command format not recognized.  Please enter:")
+                print("     accuse <card1> <card2> <card3>")
+        elif l[0] == "end":
+            if l[1] == "turn":
+                msg = prep_msg_for_send(client_id, craft_end_turn_message())
+                await conn_manager.requests.put(msg)
+            else:
+                print("end: command format not recognized.  Did you mean <end turn> ?")
+                continue
+        elif l[0] == "leave":
+            if l[1] == "game":
+                msg = prep_msg_for_send(client_id, craft_leave_game_message())
+                await conn_manager.requests.put(msg)
+            else:
+                print("leave: command format not recognized.  Did you mean <leave game> ?")
+                continue
+
 
 async def main():
 
