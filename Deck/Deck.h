@@ -14,39 +14,6 @@ const int num_weapons = 6;
 const int num_culprit_cards = 3;
 const int num_non_culprit_cards = 18;
 
-//enum ROOM
-//{
-//	HALL = "HALL",
-//	LOUNGE = "LOUNGE",
-//	DINING_ROOM = "DINING",
-//	KITCHEN = "KITCHEN",
-//	BALLROOM = "BALLROOM",
-//	CONSERVATORY = "CONSERVATORY",
-//	BILLIARD_ROOM = "BILLIARD_ROOM",
-//	LIBRARY = "LIBRARY",
-//	STUDY = "STUDY"
-//};
-//
-//enum SUSPECT
-//{
-//	COLONEL_MUSTARD = "COLONEL_MUSTARD",
-//	PROFESSOR_PLUM = "PROFESSOR_PLUM",
-//	MR_GREEN = "MR_GREEN",
-//	MRS_PEACOCK = "MRS_PEACOCK",
-//	MISS_SCARLETT = "MISS_SCARLETT",
-//	MRS_WHITE = "MRS_WHITE",
-//};
-//
-//enum WEAPON
-//{
-//	DAGGER = "DAGGER",
-//	CANDLESTICK = "CANDLESTICK",
-//	REVOLVER = "REVOLVER",
-//	ROPE = "ROPE",
-//	LEAD_PIPE = "LEAD_PIPE",
-//	SPANNER = "SPANNER",
-//};
-
 const std::string room_array[num_rooms] = {
 		"HALL",
 		"LOUNGE",
