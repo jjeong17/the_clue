@@ -12,6 +12,7 @@ Game::Game()
     this->player_manager = new Player_Manager();
     // TODO: Implement construction of new Board instance
     // TODO: Implement construction of new Deck instance
+
 }
 Game::~Game()
 {
@@ -48,6 +49,18 @@ int Game::get_game_id()
     return this->id;
 }
 int Game::num_games = 0;
+
+Game::cardSetup() {
+	Card suspect_cards[6]
+	for (SUSPECT s = SUSPECT::Begin; s != SUSPECT::END; ++s) {
+		suspect_cards[s] =
+
+	}
+	Card weapon_cards[6]
+	Card room_cards[9]
+
+
+}
 
 
 /*
