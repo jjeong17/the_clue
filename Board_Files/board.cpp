@@ -1,0 +1,190 @@
+#include "board.hpp"
+#include "BoardObj.hpp"
+#include <iostream>
+#include <vector>
+
+Board::Board(){
+    BoardObj p1 = BoardObj("Miss Scarlett", 3, 1);
+    BoardObj p2 = BoardObj("Professor Plum", 5, 1);
+    BoardObj p3 = BoardObj("Col Mustard", 7, 1);
+    BoardObj p4 = BoardObj("Mrs. Peacock", 13, 1);
+    BoardObj p5 = BoardObj("Mr. Green", 17, 1);
+    BoardObj p6 = BoardObj("Mrs. White", 19, 1);
+
+    main_board[p1.getLocation()].push_back(p1);
+    main_board[p2.getLocation()].push_back(p2);
+    main_board[p3.getLocation()].push_back(p3);
+    main_board[p4.getLocation()].push_back(p4);
+    main_board[p5.getLocation()].push_back(p5);
+    main_board[p6.getLocation()].push_back(p6);
+
+    
+    
+    //std::vector<int> adjacentLocations[11] = {0};
+    adjacentLocations[0].push_back(1);
+    adjacentLocations[0].push_back(5);
+
+    adjacentLocations[1].push_back(1);
+    adjacentLocations[1].push_back(3);
+    adjacentLocations[1].push_back(6);
+    
+    adjacentLocations[2].push_back(3);
+    adjacentLocations[2].push_back(7);
+
+    adjacentLocations[4].push_back(5);
+    adjacentLocations[4].push_back(9);
+    adjacentLocations[4].push_back(13);
+
+    adjacentLocations[5].push_back(6);
+    adjacentLocations[5].push_back(9);
+    adjacentLocations[5].push_back(11);
+    adjacentLocations[5].push_back(14);
+
+    adjacentLocations[6].push_back(7);
+    adjacentLocations[6].push_back(11);
+    adjacentLocations[6].push_back(15);
+
+    adjacentLocations[8].push_back(13);
+    adjacentLocations[8].push_back(17);
+
+    adjacentLocations[9].push_back(14);
+    adjacentLocations[9].push_back(17);
+    adjacentLocations[9].push_back(19);
+
+    adjacentLocations[10].push_back(15);
+    adjacentLocations[10].push_back(19);
+
+}
+
+void Board::printBoard(){
+    std::cout << "print board" << std::endl;
+    for(int i = 0; i < num_locations; ++i){
+        std::cout << "row: " << i << std::endl;
+        for(int j = 0; j < main_board[i].size(); ++j){
+            std::cout << "\t" << main_board[i][j].getName() << std::endl;
+
+        }
+    }
+}
+bool Board::isRoom(int a){
+    for(int i = 0; i < num_rooms; i++){
+        if(a == roomNumbers[i]){
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Board::hallwayClear(int a){
+    for(int i = 0; i < main_board[a].size(); ++i){
+        if(main_board[a][i].getType() == 1){
+            return false;
+        }
+    }
+    return true;
+}
+
+bool Board::isAdjacent(int a, int b){
+    if(isRoom(a)){
+        for(int i = 0; i < adjacentLocations[a/2].size(); i++){
+            if(adjacentLocations[a/2][i] == b){
+                return true;
+            }
+        }
+    }else if(isRoom(b)){
+        for(int j = 0; j < adjacentLocations[b/2].size(); j++){
+            if(adjacentLocations[b/2][j] == a){
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+
+bool Board::isPassage(int a, int b){
+    bool isPassage = false;
+    if(a == 0 && b == 20){
+        isPassage = true;
+    }else if(a == 20 && b == 0){
+        isPassage = true;
+    }else if(a == 4 && b == 16){
+        isPassage = true;
+    }else if(a == 16 && b == 4){
+        isPassage = true;
+    }
+    return isPassage;
+}
+
+bool Board::suggestionMove(BoardObj& player,
+BoardObj& suggested_obj, int location){
+    if(!isRoom(location)){
+        std::cout << "is not a room" << std::endl;
+        return false;
+    }
+    bool player_check = false;
+    for(int i = 0; i < main_board[location].size(); ++i){
+        if(main_board[location][i].getName() == player.getName()){
+            player_check = true;
+        }
+    }
+    if(!player_check){
+        std::cout << "player in wrong location" << std::endl;
+        return false;
+    }
+
+    BoardObj my_obj = getObj(suggested_obj, suggested_obj.getLocation());
+    removeObj(suggested_obj, suggested_obj.getLocation());
+    my_obj.setLocation(location);
+    suggested_obj.setLocation(location);
+    main_board[location].push_back(my_obj);
+    return true;
+}
+
+BoardObj Board::getObj(BoardObj a, int loc){
+    
+    for(int i = 0; i < main_board[loc].size(); i++){
+        if(a.getName() == main_board[loc][i].getName()){
+            return main_board[loc][i];
+        }
+    }
+    throw "Error Object Not Found";
+}
+
+bool Board::removeObj(BoardObj a, int loc){
+    for(int i = 0; i < main_board[loc].size(); i++){
+        if(a.getName() == main_board[loc][i].getName()){
+            main_board[loc].erase(main_board[loc].begin() + i);
+            return true;
+        }
+    }
+    return false;
+}
+
+bool Board::movePiece(BoardObj& obj, int location){
+    int curr_index = 0;
+    if(isRoom(location)){
+        if(isAdjacent(obj.getLocation(), location) || 
+        isPassage(obj.getLocation(), location)){
+            BoardObj temp = getObj(obj, obj.getLocation());
+            removeObj(obj, obj.getLocation());
+            obj.setLocation(location);
+            temp.setLocation(location);
+            main_board[location].push_back(temp);
+            
+            return true;
+        }
+    }else{
+        if(hallwayClear(location) && 
+        isAdjacent(obj.getLocation(), location)){
+            BoardObj temp = getObj(obj, obj.getLocation());
+            removeObj(obj, obj.getLocation());
+            obj.setLocation(location);
+            temp.setLocation(location);
+            main_board[location].push_back(temp);
+            
+            return true;
+        }
+    }
+    return false;
+}
