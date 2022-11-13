@@ -22,11 +22,12 @@
 #define PORT "8687"
 #define BACKLOG 10 // how many pending connections
 
-Response* parse_command(Command*);
+void* initialize_game_engine();
+Response* parse_command(void*, Command*);
 Command* alloc_command(int, char*, int);
 void free_response(Response*);
 
-int parse_msg(char**, char**, int);
+int parse_msg(void*, char**, char**, int);
 
 void sigchld_handler(int s)
 {
@@ -89,6 +90,8 @@ int main()
     int bytes_packed = 0;
 
     int msg_type;
+
+    void* game_engine_ptr;
 
     memset(&hints, 0, sizeof(hints));
     hints.ai_family = AF_INET;
@@ -153,6 +156,7 @@ int main()
         exit(1);
     }
 
+    game_engine_ptr = initialize_game_engine();
     printf("server: waiting for connections...\n");
 
     // main accept() loop
@@ -175,7 +179,6 @@ int main()
             close(sock_fd); // child doesn't need the listener
 
             while(1){
-                printf("Am I here?");
                 bytes_read = 0;
                 msg_len = 0;
                 send_msg_len = 0;
@@ -183,11 +186,11 @@ int main()
 
                 recv(new_fd, head_buf, 12, 0);
 
-                magic_bytes = unpack_int(recv_buf, bytes_read);
+                magic_bytes = unpack_int(head_buf, bytes_read);
                 bytes_read += 4;
-                client_id = unpack_int(recv_buf, bytes_read);
+                client_id = unpack_int(head_buf, bytes_read);
                 bytes_read += 4;
-                msg_len = unpack_int(recv_buf, bytes_read);
+                msg_len = unpack_int(head_buf, bytes_read);
                 bytes_read += 4;
 
                 printf("Incomming message: \n");
@@ -210,10 +213,12 @@ int main()
                 recv_buf = calloc(msg_len, sizeof(char));
                 recv(new_fd, recv_buf, msg_len, 0);
 
-                send_msg_len = parse_msg(&recv_buf, (&send_buf + 8), msg_len);
-                printf("%d\n", send_msg_len);
+                send_buf = send_buf + 8;
+                send_msg_len = parse_msg(game_engine_ptr, &recv_buf, &send_buf, msg_len);
+                send_buf = send_buf - 8;
                 bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
                 bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
+                printf("%s\n", send_buf + 8);
                 printf("\nSending Response!\n");
                 if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
                 {
@@ -234,7 +239,7 @@ int main()
     return 0;
 }
 
-int parse_msg(char** recv_buf, char** send_buf, int recv_buf_len)
+int parse_msg(void* game_engine_ptr, char** recv_buf, char** send_buf, int recv_buf_len)
 {
     int bytes_read = 0;
     int bytes_packed = 0;
@@ -256,7 +261,6 @@ int parse_msg(char** recv_buf, char** send_buf, int recv_buf_len)
         // Client checkin message
         send_msg_len = strlen("Hello client!") + 1;
         memcpy(*send_buf, "Hello client!", send_msg_len);
-        printf("\nSending Response!\n");
         return send_msg_len;
     }
     else
@@ -269,7 +273,7 @@ int parse_msg(char** recv_buf, char** send_buf, int recv_buf_len)
             printf("Command Allocation Error\n");
             return 0;
         }
-        response = parse_command(command);
+        response = parse_command(game_engine_ptr, command);
         if (response == NULL)
         {
             printf("Command parse error\n");

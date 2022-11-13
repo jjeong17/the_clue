@@ -13,16 +13,22 @@
 #include <string.h>
 #include <stdlib.h>
 
-extern "C" Response* parse_command(Command*);
+extern "C" std::vector<Game*>* initialize_game_engine();
+extern "C" Response* parse_command(std::vector<Game*>*, Command*);
 extern "C" Command* alloc_command(int, char*, int);
 extern "C" void free_response(Response*);
 
-Response* parse_new_game_command(Command*);
-Response* parse_join_game_command(Command*);
+Response* parse_new_game_command(std::vector<Game*>*, Command*);
+Response* parse_join_game_command(std::vector<Game*>*, Command*);
 
 // List of all the current games
-std::vector<Game*>* game_list;
+// std::vector<Game*>* game_list;
 
+std::vector<Game*>* initialize_game_engine()
+{
+    std::vector<Game*>* game_list = new std::vector<Game*>;
+    return game_list;
+}
 
 Response* alloc_response(int ret_code, char* msg, int msg_len)
 {
@@ -62,19 +68,19 @@ void free_command(Command* command)
     }
 }
 
-Response* parse_command(Command* command_in)
+Response* parse_command(std::vector<Game*>* game_list, Command* command_in)
 {
     Response* response = NULL; 
     switch (command_in->command_opcode)
     {
         case 14:
             // New Game command
-            response = parse_new_game_command(command_in);
+            response = parse_new_game_command(game_list, command_in);
             free_command(command_in);
             return response;
         case 15:
             // Join Game command
-            response = parse_join_game_command(command_in);
+            response = parse_join_game_command(game_list, command_in);
             free_command(command_in);
             return response;
         default:
@@ -85,14 +91,14 @@ Response* parse_command(Command* command_in)
     }
 }
 
-Response* parse_new_game_command(Command* command_in)
+Response* parse_new_game_command(std::vector<Game*>* game_list, Command* command_in)
 {
     int new_game_id;
     Response* response;
 
     if (game_list == NULL)
     {
-        game_list = new std::vector<Game*>;
+        printf("Game list is null!\n");
     }
     Game* new_game = new Game();
     new_game_id = new_game->get_game_id();
@@ -105,7 +111,7 @@ Response* parse_new_game_command(Command* command_in)
     return response;
 }
 
-Response* parse_join_game_command(Command* command_in)
+Response* parse_join_game_command(std::vector<Game*>* game_list, Command* command_in)
 {
     Response* response;
     int game_index = -1;
@@ -152,9 +158,4 @@ Response* parse_join_game_command(Command* command_in)
     // Success case: 23: join success retcode
     response = alloc_response(23, NULL, 0);
     return response;
-}
-
-int sample_function(int i)
-{
-    return 0;
 }
