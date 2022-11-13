@@ -2,7 +2,7 @@
 #define BOARD_HPP
 #include <string>
 #include <vector>
-#include "BoardObj.hpp"
+#include "BoardObj.h"
 
 class Board{
     public:

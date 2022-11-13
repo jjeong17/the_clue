@@ -1,5 +1,5 @@
-#include "board.hpp"
-#include "BoardObj.hpp"
+#include "board.h"
+#include "BoardObj.h"
 #include <iostream>
 #include <vector>
 

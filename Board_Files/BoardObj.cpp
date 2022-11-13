@@ -1,4 +1,4 @@
-#include "BoardObj.hpp"
+#include "BoardObj.h"
 
 BoardObj::BoardObj(){
     m_name = "None";

@@ -1,6 +1,6 @@
 #include <iostream>
-#include "board.hpp"
-#include "BoardObj.hpp"
+#include "board.h"
+#include "BoardObj.h"
 
 int main(){
     //test interface
