@@ -47,7 +47,7 @@ Card* Deck::GenerateNonCulpritCardDeck(Card* culprit_deck) {
 	Card* culprit_suspect_card = &culprit_deck[1];
 	Card* culprit_weapon_card = &culprit_deck[2];
 
-	std::cout << culprit_room_card->getName() << " " << culprit_suspect_card->getName() << " " << culprit_weapon_card->getName() << std::endl;
+//	std::cout << culprit_room_card->getName() << " " << culprit_suspect_card->getName() << " " << culprit_weapon_card->getName() << std::endl;
 
 	Card* non_culprit_card = new Card[18];
 
@@ -75,7 +75,6 @@ Card* Deck::GenerateNonCulpritCardDeck(Card* culprit_deck) {
 	}
 
 	// Weapon
-	int weapon_loop_idx = 0;
 	for (int i = 0; i < num_weapons; i++) {
 		if (weapon_array[i] != culprit_weapon_card->getName()) {
 			Card non_culprit_weapon;
@@ -87,6 +86,20 @@ Card* Deck::GenerateNonCulpritCardDeck(Card* culprit_deck) {
 	}
 
 	return non_culprit_card;
+}
+
+Card* Deck::ShuffleDeck(Card* non_culprit_cards) {
+	Card temp_card = non_culprit_cards[0];
+	int random_idx = 0;
+
+	for (int i = 0; i < num_non_culprit_cards; i++) {
+		random_idx = rand() % num_non_culprit_cards;
+		temp_card = non_culprit_cards[i];
+		non_culprit_cards[i] = non_culprit_cards[random_idx];
+		non_culprit_cards[random_idx] = temp_card;
+	}
+
+	return non_culprit_cards;
 }
 
 Card::Card() {}

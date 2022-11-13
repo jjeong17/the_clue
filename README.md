@@ -10,19 +10,13 @@ g++ -c -o game_engine.o game_engine.cpp
 g++ -o final server.o server_to_game_interface.o game_engine.o
 
 
-
-
 ## Deck Class
+1) Generate culprit deck - 1 Room, 1 Suspect, 1 Weapon card
+2) Generate shuffled non-culprit deck (8 Room, 5 Suspect, 5 Weapon Cards) : This will be ditributed to players
 
-Init function will trigger followings in order:
-1) Randomly pick one from each category of cards and create an "Envelop/Cabinet" out of it. (Location, Tool, Player)
-2) Distribute remaining cards randomly to each players. NOTE. No need to be distributed equally
+### Running a test script
+$ cd Deck && sh run_test.sh
 
 
 
-## Initialization
 
-1) Each cards get initiated:
-    a. 6 Suspects
-    b. 6 Weapons
-    c. 9 Rooms

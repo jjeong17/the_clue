@@ -1,0 +1,1 @@
+g++ main_test.cpp Deck.cpp && ./a.out

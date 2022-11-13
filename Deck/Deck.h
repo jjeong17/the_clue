@@ -11,6 +11,9 @@ const int num_rooms = 9;
 const int num_suspects = 6;
 const int num_weapons = 6;
 
+const int num_culprit_cards = 3;
+const int num_non_culprit_cards = 18;
+
 //enum ROOM
 //{
 //	HALL = "HALL",
@@ -106,7 +109,7 @@ public:
 	Deck();
 	Card* GenerateCulpritCardDeck();
 	Card* GenerateNonCulpritCardDeck(Card* culprit_deck);
-	void ShuffleDeck(Card non_culprit_cards);
+	Card* ShuffleDeck(Card* non_culprit_cards);
 };
 
 #endif //THE_CLUE_DECK_H
