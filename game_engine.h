@@ -1,14 +1,14 @@
 #include <vector>
+#include <map>
 #include <string>
+#include "Board_Files/board.h"
+#include "Deck/Deck.h"
 
 class Game;
 class Player_Manager;
 class Player;
-class Board;
 class Location;
-class Deck;
 class Card;
-
 
 class Game
 {
@@ -24,7 +24,7 @@ public:
     int add_player(int);
     int start_game();
     int end_game();
-    int make_move(int);
+    int make_move(int, int);
     int get_game_id();
 };
 
@@ -33,11 +33,15 @@ class Player_Manager
 private:
     int num_players;
     std::vector<Player*> player_list;
-    std::string available_characters[6] = {"Colonel Mustard", "Mrs White", "Professor Plum", "Mrs. Peacock", "Mr. Green", "Ms. Scarlett"};
+    std::map<int, std::string> player_to_character;
+    std::string characters[6] = {"MISS_SCARLETT", "PROFESSOR_PLUM",
+    "COLONEL_MUSTARD", "MRS_PEACOCK", "MR_GREEN", "MRS_WHITE"};
+    
 public:
     Player_Manager();
     ~Player_Manager();
     int add_player(int);
+    Player* getPlayer(int);
 };
 
 class Player
@@ -50,19 +54,13 @@ private:
     std::vector<Card*> hand;
 public:
     Player();
-    Player(int, int);
+    Player(int, int, std::string);
+    std::string getCharacter();
     ~Player();
 };
 
-class Board
-{
-private:
-    Location* locations[26];
-public:
-    Board();
-    ~Board();
-};
-
+//I think this location object may be useful to map the UI 
+//indexing to the board indexing if they differ
 class Location
 {
 private:

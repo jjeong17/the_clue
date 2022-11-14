@@ -1,6 +1,6 @@
 #include "game_engine.h"
-
-
+#include "Board_Files/board.h"
+#include "Deck/Deck.h"
 /*
 * Game class function definitions
 */
@@ -10,8 +10,8 @@ Game::Game()
     num_games += 1;
     // TODO: Implement construction of new Player_Manager instance
     this->player_manager = new Player_Manager();
-    // TODO: Implement construction of new Board instance
-    // TODO: Implement construction of new Deck instance
+    board = new Board();
+    deck = new Deck();
 }
 Game::~Game()
 {
@@ -33,14 +33,13 @@ int Game::end_game()
     // TODO: Implement this function
     return 0;
 }
-int Game::make_move(int move_option)
+int Game::make_move(int player_id, int move_option)
 {
-    // TODO: Implement this function
-    // This will be called by the server code
-    // Functionality will be to interface with the board object to check validity of move,
-    // And then make the move (And do all of the subsequent things this entails)
-    // (This will be a very big function)
-    // return is 1 if move was made 0 if requested move is invalid
+    //I am assuming the move_option will map exactly to the 
+    //number system the board uses for indexing locations
+    Player* p = player_manager->getPlayer(player_id);
+    board->movePiece(p->getCharacter(), move_option);
+    
     return 0;
 }
 int Game::get_game_id()
@@ -67,7 +66,7 @@ int Player_Manager::add_player(int player_id)
     }
     num_players += 1;
 
-    Player* player = new Player(player_id, num_players);
+    Player* player = new Player(player_id, num_players, characters[num_players]);
     player_list.push_back(player);
 
     // TODO: Implement the rest of this function
@@ -75,32 +74,25 @@ int Player_Manager::add_player(int player_id)
     return 1;
 }
 
+Player* Player_Manager::getPlayer(int id){
+    return player_list[id];
+}
+
 
 /*
 *   Player function definitions
 */
 
-Player::Player(int player_id_, int position_)
+Player::Player(int player_id_, int position_, std::string character_)
 {
     // hand should be initialized at game start, not here
     
     this->player_id = player_id_;
     this->position = position_; // Will be provided from the Player_Manager object
+    this->selected_character = character_;
 }
 
-/*
-*   Board function definitions
-*/
-
-Board::Board()
+std::string Player::getCharacter()
 {
-    // TODO: This should initialize all 21 locations
+    return selected_character;
 }
-
-/*
-*   Location function definitions
-*/
-
-/*
-*   Deck function definitions
-*/
