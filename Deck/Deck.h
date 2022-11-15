@@ -53,10 +53,10 @@ enum CardType
 
 class Card {
 private:
-	int id;
-	CardType type;
-	std::string name;
-	bool Is_Owned;
+	int m_id;
+	CardType m_type;
+	std::string m_name;
+	bool m_is_owned;
 
 public:
 	Card();
@@ -72,9 +72,10 @@ public:
 };
 
 class Deck {
-	Card* culprit_cards;
-	Card* non_culprit_cards;
 private:
+	Card* m_culprit_cards;
+	Card* m_non_culprit_cards;
+
 	Card* generate_culprit_card_deck();
 	Card* generate_non_culprit_card_deck(Card* culprit_deck);
 	Card* shuffle_deck(Card* non_culprit_cards);

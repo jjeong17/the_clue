@@ -14,19 +14,19 @@ Deck::Deck() {
 }
 
 void Deck::set_culprit_cards(Card* culprit_cards) {
-	this->culprit_cards = culprit_cards;
+	this->m_culprit_cards = culprit_cards;
 }
 
 void Deck::set_non_culprit_cards(Card* non_culprit_cards) {
-	this->non_culprit_cards = non_culprit_cards;
+	this->m_non_culprit_cards = non_culprit_cards;
 }
 
 Card* Deck::get_culprit_cards() {
-	return this->culprit_cards;
+	return this->m_culprit_cards;
 };
 
 Card* Deck::get_non_culprit_cards() {
-	return this->non_culprit_cards;
+	return this->m_non_culprit_cards;
 }
 
 Card* Deck::generate_culprit_card_deck()
@@ -126,21 +126,21 @@ Card* Deck::shuffle_deck(Card* non_culprit_cards) {
 Card::Card() {}
 
 std::string Card::get_name() {
-	return this->name;
+	return this->m_name;
 }
 
 CardType Card::get_type() {
-	return this->type;
+	return this->m_type;
 }
 
 void Card::set_name(std::string name) {
-	this->name = name;
+	this->m_name = name;
 }
 
 void Card::set_type(CardType type) {
-	this->type = type;
+	this->m_type = type;
 }
 
 void Card::setIsOwned(bool is_owned) {
-	this->Is_Owned = is_owned;
+	this->m_is_owned = is_owned;
 }
