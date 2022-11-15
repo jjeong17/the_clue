@@ -32,7 +32,8 @@ class Player_Manager
 {
 private:
     int num_players;
-    std::vector<Player*> player_list;
+    std::map<int, Player*> player_list;
+    //std::vector<Player*> player_list;
     std::map<int, std::string> player_to_character;
     std::string characters[6] = {"MISS_SCARLETT", "PROFESSOR_PLUM",
     "COLONEL_MUSTARD", "MRS_PEACOCK", "MR_GREEN", "MRS_WHITE"};

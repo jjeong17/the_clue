@@ -55,9 +55,9 @@ int Game::make_move(int player_id, int move_option)
     //I am assuming the move_option will map exactly to the 
     //number system the board uses for indexing locations
     Player* p = player_manager->getPlayer(player_id);
-    board->movePiece(p->getCharacter(), move_option);
+    return board->movePiece(p->getCharacter(), move_option);
     
-    return 0;
+    
 }
 int Game::get_game_id()
 {
@@ -84,7 +84,7 @@ int Player_Manager::add_player(int player_id)
     num_players += 1;
 
     Player* player = new Player(player_id, num_players, characters[num_players]);
-    player_list.push_back(player);
+    player_list[player_id] = player;
 
     // TODO: Implement the rest of this function
 
