@@ -20,12 +20,12 @@ def craft_checkin_message():
     return struct.pack("!I", 0)
 
 def craft_create_game_message():
-    # message_type for create game = 3
-    return struct.pack("!I", 3)
+    # message_type for create game = 14
+    return struct.pack("!I", 14)
 
 def craft_join_game_message(game_id: int):
-    # message_type for join game = 2
-    return struct.pack("!II", 2, game_id)
+    # message_type for join game = 15
+    return struct.pack("!I", 15) + struct.pack("<I", game_id)
 
 
 def prep_msg_for_send(client_id: int, message: bytes):
@@ -46,22 +46,35 @@ async def parse_response(sock_fd) -> bytes:
     msg_len = struct.unpack("!I", msg_len)[0]
     data = sock_fd.recv(msg_len)
 
-    return data
+    response_opcode = struct.unpack("!I", data[:4])[0]
+
+    if response_opcode == 10:
+        return "Connection to server successfully established"
+
+    content_len = struct.unpack("!I", data[4:8])[0]
+    if content_len + 8 != len(data):
+        print("Error with response")
+
+    if response_opcode == 21:
+        game_id = struct.unpack("<I", data[8:12])[0]
+        return f"Game with id: {game_id} successfully created!"
+    else:
+        return data[8:].strip(b'\x00')
+
 
 async def manage_connection(conn: Connection_Manager, sock_fd):
     # Send initial checkin:
     sock_fd.send(prep_msg_for_send(CLIENT_ID, craft_checkin_message()))
 
     # Wait for response
-    resp = await parse_response(sock_fd)
-    print(resp)
+    out = await parse_response(sock_fd)
+    print(out)
 
     while True:
         user_req = await conn.requests.get()
         sock_fd.send(user_req)
-        resp = await parse_response(sock_fd)
-        resp = resp.strip(b'\x00')
-        print(f"Message from server received: {resp}")
+        out = await parse_response(sock_fd)
+        print(f"Message from server received: {out}")
 
 async def shell(client_id, conn_manager: Connection_Manager):
     while True:

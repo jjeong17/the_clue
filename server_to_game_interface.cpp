@@ -103,10 +103,9 @@ Response* parse_new_game_command(std::vector<Game*>* game_list, Command* command
     Game* new_game = new Game();
     new_game_id = new_game->get_game_id();
     game_list->push_back(new_game);
-
     // 21: Game succesfully created ret code
     // msg: 4-byte game id cast to a char*
-    response = alloc_response(21, (char*)new_game_id, 4);
+    response = alloc_response(21, (char*)(&new_game_id), 4);
 
     return response;
 }

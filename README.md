@@ -7,4 +7,4 @@ gcc -c -o server.o server.c
 g++ -c -o server_to_game_interface.o server_to_game_interface.cpp
 g++ -c -o game_engine.o game_engine.cpp
 
-g++ -o final server.o server_to_game_interface.o game_engine.o
+g++ -o final server.o server_to_game_interface.o game_engine.o -lpthread

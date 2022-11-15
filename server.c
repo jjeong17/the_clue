@@ -5,6 +5,7 @@
 #include <unistd.h>
 #include <errno.h>
 #include <string.h>
+
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
@@ -12,15 +13,18 @@
 #include <arpa/inet.h>
 #include <sys/wait.h>
 #include <signal.h>
+#include <pthread.h>
 
-/* Compile with:
-    *
-    * gcc server.c -o server
-    * 
+/*
+* Compile with:
+* gcc server2.c -o server2 -lpthread
 */
 
 #define PORT "8687"
-#define BACKLOG 10 // how many pending connections
+#define BACKLOG 10
+
+#define MAX_CLIENTS 64
+#define BUFFER_SZ 2048
 
 void* initialize_game_engine();
 Response* parse_command(void*, Command*);
@@ -29,23 +33,94 @@ void free_response(Response*);
 
 int parse_msg(void*, char**, char**, int);
 
-void sigchld_handler(int s)
+
+static _Atomic unsigned int cli_count = 0;
+static int uid = 10;
+
+/* Client structure */
+typedef struct
 {
-    // waitpid() might overwrite errno, so we save and restore it:
-    int saved_errno = errno;
+	struct sockaddr_storage address;
+	int sockfd;
+	int uid;
+} client_t;
 
-    while(waitpid(-1, NULL, WNOHANG) > 0);
+typedef struct
+{
+    client_t* cli;
+    void* game_engine_ptr;
+} thread_args;
 
-    errno = saved_errno;
+client_t *clients[MAX_CLIENTS];
+
+pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+void str_overwrite_stdout() 
+{
+    printf("\r%s", "> ");
+    fflush(stdout);
 }
 
-void* get_in_addr(struct sockaddr *sa)
+void str_trim_lf (char* arr, int length) 
 {
-    if (sa->sa_family == AF_INET)
-    {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
+  int i;
+  for (i = 0; i < length; i++) { // trim \n
+    if (arr[i] == '\n') {
+      arr[i] = '\0';
+      break;
     }
-    printf("Only IPv4 supported\n");
+  }
+}
+
+/* Add clients to queue */
+void queue_add(client_t *cl)
+{
+	pthread_mutex_lock(&clients_mutex);
+
+	for(int i=0; i < MAX_CLIENTS; ++i)
+    {
+		if(!clients[i])
+        {
+			clients[i] = cl;
+			break;
+		}
+	}
+
+	pthread_mutex_unlock(&clients_mutex);
+}
+
+void queue_remove(int uid)
+{
+	pthread_mutex_lock(&clients_mutex);
+
+	for(int i=0; i < MAX_CLIENTS; ++i){
+		if(clients[i]){
+			if(clients[i]->uid == uid){
+				clients[i] = NULL;
+				break;
+			}
+		}
+	}
+
+	pthread_mutex_unlock(&clients_mutex);
+}
+
+void send_message(char *s, int uid)
+{
+	pthread_mutex_lock(&clients_mutex);
+
+	for(int i=0; i<MAX_CLIENTS; ++i){
+		if(clients[i]){
+			if(clients[i]->uid != uid){
+				if(write(clients[i]->sockfd, s, strlen(s)) < 0){
+					perror("ERROR: write to descriptor failed");
+					break;
+				}
+			}
+		}
+	}
+
+	pthread_mutex_unlock(&clients_mutex);
 }
 
 int unpack_int(char* byte_array, int offset)
@@ -64,6 +139,163 @@ int pack_int(char* byte_array, int offset, int to_pack)
     return sizeof(int);
 }
 
+/* Handle all communication with the client */
+void *handle_client(void* arg)
+{
+    char* recv_buf;
+    char head_buf[12] = {0};
+    int magic_bytes;
+    int msg_len;
+    int received;
+    int bytes_read = 0;
+
+    char* send_buf = calloc(1000, sizeof(char));
+    int send_magic_bytes = 0x1234;
+    int send_msg_len;
+    int bytes_sent = 0;
+    int bytes_packed = 0;
+
+    int msg_type;
+
+    thread_args* thread_arguments = (thread_args *)arg;
+	
+	cli_count++;
+    client_t *cli = thread_arguments->cli;
+
+    void* game_engine_ptr = thread_arguments->game_engine_ptr;
+
+    // Name
+    while (1)
+    {
+        bytes_read = 0;
+        bytes_packed = 0;
+        msg_len = 0;
+        send_msg_len = 0;
+
+        received = recv(cli->sockfd, head_buf, 12, 0);
+
+        if (received == 0)
+        {
+            printf("Someone has left\n");
+            break;
+        }
+        if (received == -1)
+        {
+            printf("ERROR: someone has left unexpectedly\n");
+            break;
+        }
+
+        magic_bytes = unpack_int(head_buf, bytes_read);
+        bytes_read += 4;
+        cli->uid = unpack_int(head_buf, bytes_read);
+        bytes_read += 4;
+        msg_len = unpack_int(head_buf, bytes_read);
+        bytes_read += 4;
+
+        printf("Incomming message: \n");
+        printf("Client ID: 0x%x\nMsg size: 0x%x\n", cli->uid, msg_len);
+
+        memset(head_buf, 0, 12);
+        if (msg_len < 4 || msg_len > 1000)
+        {
+            send_msg_len = strlen("Bad message!\n") + 1;
+            bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
+            bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
+            memcpy(send_buf + bytes_packed, "Bad message!\n", send_msg_len);
+            printf("Sending Response!\n");
+            if (send(cli->sockfd, send_buf, bytes_packed + send_msg_len, 0) == -1)
+            {
+                perror("send");
+            }
+            continue;
+        }
+        recv_buf = calloc(msg_len, sizeof(char));
+        recv(cli->sockfd, recv_buf, msg_len, 0);
+
+        send_buf = send_buf + 8;
+        send_msg_len = parse_msg(game_engine_ptr, &recv_buf, &send_buf, msg_len);
+        send_buf = send_buf - 8;
+        bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
+        bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
+        printf("Sending Response!\n");
+        if (send(cli->sockfd, send_buf, bytes_packed + send_msg_len, 0) == -1)
+        {
+            perror("send");
+        }
+        if (recv_buf != NULL)
+        {
+            free(recv_buf);
+        }
+        memset(send_buf, 0, 1000);
+    }
+    /* Delete client from queue and yield thread */
+	close(cli->sockfd);
+    queue_remove(cli->uid);
+    free(cli);
+    cli_count--;
+    free(thread_arguments);
+    pthread_detach(pthread_self());
+
+	return NULL;
+}
+
+int parse_msg(void* game_engine_ptr, char** recv_buf, char** send_buf, int recv_buf_len)
+{
+    int bytes_read = 0;
+    int bytes_packed = 0;
+    int command_op;
+
+    int send_msg_len;
+
+    char* args;
+    int args_len = recv_buf_len - 4;
+
+    Command* command;
+    Response* response;
+    
+    command_op = unpack_int(*recv_buf, bytes_read);
+    bytes_read += 4;
+
+    if (command_op == 0)
+    {
+        // Client checkin message retcode: 10
+        bytes_packed += pack_int(*send_buf, bytes_packed, 10);
+        send_msg_len = bytes_packed;
+        return send_msg_len;
+    }
+
+    args = calloc(args_len, sizeof(char));
+    memcpy(args, (*recv_buf) + bytes_read, args_len);
+    command = alloc_command(command_op, args, args_len);
+    if (command == NULL)
+    {
+        printf("Command Allocation Error\n");
+        return 0;
+    }
+    response = parse_command(game_engine_ptr, command);
+    if (response == NULL)
+    {
+        printf("Command parse error\n");
+        return 0;
+    }
+    send_msg_len = response->msg_len + sizeof(int)*2;
+    bytes_packed += pack_int(*send_buf, bytes_packed, response->ret_code);
+    bytes_packed += pack_int(*send_buf, bytes_packed, response->msg_len);
+    memcpy((*send_buf) + bytes_packed, response->msg, response->msg_len);
+    free_response(response);
+    return send_msg_len;
+}
+
+
+void* get_in_addr(struct sockaddr *sa)
+{
+    if (sa->sa_family == AF_INET)
+    {
+        return &(((struct sockaddr_in*)sa)->sin_addr);
+    }
+    printf("Only IPv4 supported\n");
+}
+
 int main()
 {
     int sock_fd, new_fd; // listen on sock_fd, new connection on new_fd
@@ -76,20 +308,7 @@ int main()
     char s[INET_ADDRSTRLEN];
     int ret_code;
 
-    char* recv_buf;
-    char head_buf[12] = {0};
-    int magic_bytes;
-    int msg_len;
-    int bytes_read = 0;
-    int client_id;
-
-    char* send_buf = calloc(1000, sizeof(char));
-    int send_magic_bytes = 0x1234;
-    int send_msg_len;
-    int bytes_sent = 0;
-    int bytes_packed = 0;
-
-    int msg_type;
+    pthread_t tid;
 
     void* game_engine_ptr;
 
@@ -115,20 +334,17 @@ int main()
             perror("server: socket");
             continue;
         }
-
         if (setsockopt(sock_fd, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int)) == -1)
         {
             perror("setsockopt");
             exit(1);
         }
-
         if (bind(sock_fd, p->ai_addr, p->ai_addrlen) == -1)
         {
             close(sock_fd);
             perror("server: bind");
             continue;
         }
-
         break;
     }
 
@@ -139,20 +355,9 @@ int main()
         fprintf(stderr, "server: failed to bind\n");
         exit(1);
     }
-
     if (listen(sock_fd, BACKLOG) == -1)
     {
         perror("listen");
-        exit(1);
-    }
-
-    sa.sa_handler = sigchld_handler; // reap all dead processes
-    sigemptyset(&sa.sa_mask);
-    sa.sa_flags = SA_RESTART;
-
-    if (sigaction(SIGCHLD, &sa, NULL) == -1)
-    {
-        perror("sigaction");
         exit(1);
     }
 
@@ -160,130 +365,40 @@ int main()
     printf("server: waiting for connections...\n");
 
     // main accept() loop
-    while(1)
+	while(1)
     {
-        sin_size = sizeof(their_addr);
-        new_fd = accept(sock_fd, (struct sockaddr *)&their_addr, &sin_size);
-        if (new_fd == -1)
-        {
-            perror("accept");
-            continue;
-        }
+		sin_size = sizeof(their_addr);
+		new_fd = accept(sock_fd, (struct sockaddr*)&their_addr, &sin_size);
+
+		/* Check if max clients is reached */
+		if((cli_count + 1) == MAX_CLIENTS){
+			printf("Max clients reached. Rejected: ");
+			inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof(s));
+            printf("%s\n", s);
+			close(new_fd);
+			continue;
+		}
 
         inet_ntop(their_addr.ss_family, get_in_addr((struct sockaddr *)&their_addr), s, sizeof(s));
         printf("server: got connection from %s\n", s);
 
-        if (!fork())
-        {
-            // this is the child process
-            close(sock_fd); // child doesn't need the listener
+		/* Client settings */
+		client_t* cli = (client_t *)calloc(1, sizeof(client_t));
+		cli->address = their_addr;
+		cli->sockfd = new_fd;
+		cli->uid = uid++;
 
-            while(1){
-                bytes_read = 0;
-                msg_len = 0;
-                send_msg_len = 0;
-                bytes_packed = 0;
+        thread_args* thread_arguments = (thread_args *)calloc(1, sizeof(thread_args)); 
+        thread_arguments->cli = cli;
+        thread_arguments->game_engine_ptr = game_engine_ptr;
 
-                recv(new_fd, head_buf, 12, 0);
+		/* Add client to the queue and fork thread */
+		queue_add(cli);
+		pthread_create(&tid, NULL, &handle_client, (void*)thread_arguments);
 
-                magic_bytes = unpack_int(head_buf, bytes_read);
-                bytes_read += 4;
-                client_id = unpack_int(head_buf, bytes_read);
-                bytes_read += 4;
-                msg_len = unpack_int(head_buf, bytes_read);
-                bytes_read += 4;
+		/* Reduce CPU usage */
+		// sleep(1);
+	}
 
-                printf("Incomming message: \n");
-                printf("Client ID: 0x%x\nMsg size: 0x%x\n", client_id, msg_len);
-
-                memset(head_buf, 0, 12);
-                if (msg_len < 4 || msg_len > 1000)
-                {
-                    send_msg_len = strlen("Bad message!\n") + 1;
-                    bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
-                    bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
-                    memcpy(send_buf + bytes_packed, "Bad message!\n", send_msg_len);
-                    printf("\nSending Response!\n");
-                    if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
-                    {
-                        perror("send");
-                    }
-                    continue;
-                }
-                recv_buf = calloc(msg_len, sizeof(char));
-                recv(new_fd, recv_buf, msg_len, 0);
-
-                send_buf = send_buf + 8;
-                send_msg_len = parse_msg(game_engine_ptr, &recv_buf, &send_buf, msg_len);
-                send_buf = send_buf - 8;
-                bytes_packed += pack_int(send_buf, bytes_packed, send_magic_bytes);
-                bytes_packed += pack_int(send_buf, bytes_packed, send_msg_len);
-                printf("%s\n", send_buf + 8);
-                printf("\nSending Response!\n");
-                if (send(new_fd, send_buf, bytes_packed + send_msg_len, 0) == -1)
-                {
-                    perror("send");
-                }
-                if (recv_buf != NULL)
-                {
-                    free(recv_buf);
-                }
-                memset(send_buf, 0, 1000);
-            }
-            close(new_fd);
-            exit(0);
-        }
-        close(new_fd); // parent doesn't need this
-    }
-
-    return 0;
-}
-
-int parse_msg(void* game_engine_ptr, char** recv_buf, char** send_buf, int recv_buf_len)
-{
-    int bytes_read = 0;
-    int bytes_packed = 0;
-    int command_op;
-
-    int send_msg_len;
-
-    char* args;
-    int args_len = recv_buf_len - 4;
-
-    Command* command;
-    Response* response;
-    
-    command_op = unpack_int(*recv_buf, bytes_read);
-    bytes_read += 4;
-
-    if (command_op == 0)
-    {
-        // Client checkin message
-        send_msg_len = strlen("Hello client!") + 1;
-        memcpy(*send_buf, "Hello client!", send_msg_len);
-        return send_msg_len;
-    }
-    else
-    {
-        args = calloc(args_len, sizeof(char));
-        memcpy(args, (*recv_buf) + bytes_read, args_len);
-        command = alloc_command(command_op, args, args_len);
-        if (command == NULL)
-        {
-            printf("Command Allocation Error\n");
-            return 0;
-        }
-        response = parse_command(game_engine_ptr, command);
-        if (response == NULL)
-        {
-            printf("Command parse error\n");
-            return 0;
-        }
-        send_msg_len = response->msg_len + sizeof(int)*2;
-        bytes_packed += pack_int(*send_buf, bytes_packed, response->ret_code);
-        bytes_packed += pack_int(*send_buf, bytes_packed, response->msg_len);
-        memcpy((*send_buf) + bytes_packed, response->msg, response->msg_len);
-        free_response(response);
-        return send_msg_len;
-    }
+	return EXIT_SUCCESS;
 }
