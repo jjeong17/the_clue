@@ -169,14 +169,33 @@ Response* parse_make_move_command(std::vector<Game*>* game_list, Command* comman
     int game_id;
     int player_id;
     int move_option;
+    int game_index = -1;
 
     // game id is args+0x0 interpreted as a 4-byte integer
     game_id = *((int*)command_in->args);
 
-    // move option is args+0x4 interpreted as a 4-byte integer
-    move_option = *((int*)(command_in->args + 4));
+    // player_id is args+0x4 interpreted as a 4-byte integer
+    player_id = *((int*)(command_in->args + 4));
+
+    // move option is args+0x8 interpreted as a 4-byte integer
+    move_option = *((int*)(command_in->args + 8));
 
     // printf("Game id: %d, move option: %d\n", game_id, move_option);
+
+    for (int i = 0; i < game_list->size(); i++)
+    {
+        if ((*game_list)[i]->get_game_id() == game_id)
+        {
+            game_index = i;
+        }
+    }
+    if (game_index == -1)
+    {
+        // 24: Game does not exist retcode
+        response = alloc_response(24, "Requested Game Does Not Exist\n", strlen("Requested Game Does Not Exist\n") + 1);
+        return response;
+    }
+    (*game_list)[game_index]->make_move(player_id, move_option);
 
     response = alloc_response(25, "Requested game is full\n", strlen("Requested game is full\n") + 1);
     return response;

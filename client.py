@@ -26,11 +26,11 @@ def craft_create_game_message():
 
 def craft_join_game_message(game_id: int):
     # message_type for join game = 15
-    return struct.pack("!I", 15) + struct.pack("<I", game_id)
+    return struct.pack("!I", 15) + struct.pack("<I", game_id) + struct.pack("<I", CLIENT_ID)
 
 def craft_make_move_message(move_option: int):
     # message_type for make move = 31
-    return struct.pack("!I", 31) + struct.pack("<I", global_game_id) + struct.pack("<I", move_option)
+    return struct.pack("!I", 31) + struct.pack("<I", global_game_id) + struct.pack("<I", CLIENT_ID) + struct.pack("<I", move_option)
 
 
 def prep_msg_for_send(client_id: int, message: bytes):
