@@ -9,6 +9,7 @@ PORT = 8687
 
 CLIENT_ID = 15
 
+global_game_id = -1
 
 class Connection_Manager:
     def __init__(self):
@@ -20,32 +21,17 @@ def craft_checkin_message():
     return struct.pack("!I", 0)
 
 def craft_create_game_message():
-    # message_type for create game = 3
-    return struct.pack("!I", 3)
+    # message_type for create game = 14
+    return struct.pack("!I", 14)
 
 def craft_join_game_message(game_id: int):
-    # message_type for join game = 2
-    return struct.pack("!II", 2, game_id)
+    # message_type for join game = 15
+    return struct.pack("!I", 15) + struct.pack("<I", game_id)
 
-def craft_roll_dice_message():
-    # message_type for roll dice = 4
-    return struct.pack("!I", 4)
+def craft_make_move_message(move_option: int):
+    # message_type for make move = 31
+    return struct.pack("!I", 31) + struct.pack("<I", global_game_id) + struct.pack("<I", move_option)
 
-def craft_make_suggestion_message(card1: str, card2: str, card3: str):
-    # message_type for making a suggestion = 5
-    return struct.pack("!II", 5, card1, card2, card3)
-
-def craft_make_accusation_message(card1: str, card2: str, card3: str):
-    # message_type for making a suggestion = 6
-    return struct.pack("!II", 6, card1, card2, card3)
-
-def craft_end_turn_message():
-    # message_type for roll dice = 7
-    return struct.pack("!I", 7)
-
-def craft_leave_game_message():
-    # message_type for roll dice = 8
-    return struct.pack("!I", 8)
 
 def prep_msg_for_send(client_id: int, message: bytes):
     magic_bytes = 0x12345678
@@ -58,6 +44,7 @@ def prep_msg_for_send(client_id: int, message: bytes):
     return header + message
 
 async def parse_response(sock_fd) -> bytes:
+    global global_game_id
     magic_bytes_recv = struct.unpack("!I", sock_fd.recv(4))[0]
     if magic_bytes_recv != 0x1234:
         print(f"Magic bytes: {magic_bytes_recv} Problem!")
@@ -65,24 +52,43 @@ async def parse_response(sock_fd) -> bytes:
     msg_len = struct.unpack("!I", msg_len)[0]
     data = sock_fd.recv(msg_len)
 
-    return data
+    response_opcode = struct.unpack("!I", data[:4])[0]
+
+    if response_opcode == 10:
+        return "Connection to server successfully established"
+
+    content_len = struct.unpack("!I", data[4:8])[0]
+    if content_len + 8 != len(data):
+        print("Error with response")
+
+    if response_opcode == 21:
+        game_id = struct.unpack("<I", data[8:12])[0]
+        global_game_id = game_id
+        return f"Game with id: {global_game_id} successfully created!"
+    elif response_opcode == 23:
+        game_id = struct.unpack("<I", data[8:12])[0]
+        global_game_id = game_id
+        return f"Game with id: {global_game_id} successfully joined!"
+    else:
+        return data[8:].strip(b'\x00')
+
 
 async def manage_connection(conn: Connection_Manager, sock_fd):
     # Send initial checkin:
     sock_fd.send(prep_msg_for_send(CLIENT_ID, craft_checkin_message()))
 
     # Wait for response
-    resp = await parse_response(sock_fd)
-    print(resp)
+    out = await parse_response(sock_fd)
+    print(out)
 
     while True:
         user_req = await conn.requests.get()
         sock_fd.send(user_req)
-        resp = await parse_response(sock_fd)
-        resp = resp.strip(b'\x00')
-        print(f"Message from server received: {resp}")
+        out = await parse_response(sock_fd)
+        print(f"Message from server received: {out}")
 
 async def shell(client_id, conn_manager: Connection_Manager):
+    global global_game_id
     while True:
         a = await aioconsole.ainput(">>")
         l = a.split()
@@ -94,11 +100,15 @@ async def shell(client_id, conn_manager: Connection_Manager):
                 print("Help Menu:")
                 print("     game join <game id>")
                 print("     game create")
-                print("     roll")
-                print("     suggest <card1> <card2> <card3>")
-                print("     accuse <card1> <card2> <card3>")
-                print("     end turn")
-                print("     leave game")
+                print("     gameid <= Shows current game")
+                print("")
+                print("     move <move option> <= make a move")
+                continue
+            if l[0] == "gameid":
+                if (global_game_id == -1):
+                    print("You have not joined a game")
+                    continue
+                print(f"You are in game with id: {global_game_id}")
                 continue
             else:
                 print(f"Unknown Command: {l[0]}")
@@ -116,41 +126,24 @@ async def shell(client_id, conn_manager: Connection_Manager):
                 msg = prep_msg_for_send(client_id, craft_create_game_message())
                 await conn_manager.requests.put(msg)
             else:
-                print("command format not recognized")
+                print("game: command format not recognized")
                 continue
-        elif l[0] == "roll":
-            msg = prep_msg_for_send(client_id, craft_roll_dice_message())
+        elif l[0] == "move":
+            if (global_game_id == -1):
+                    print("You have not joined a game")
+                    continue
+            move_option = int(l[1])
+            if move_option < 0 or move_option > 20:
+                print("Invalid move option!")
+                continue
+            msg = prep_msg_for_send(client_id, craft_make_move_message(move_option))
             await conn_manager.requests.put(msg)
-        elif l[0] == "suggest":
-            if len(l) == 4:
-                msg = prep_msg_for_send(client_id, craft_make_suggestion_message(l[1], l[2], l[3]))
-                await conn_manager.requests.put(msg)
-            else:
-                print("suggest: command format not recognized.  Please enter:")
-                print("     suggest <card1> <card2> <card3>")
-                continue
-        elif l[0] == "accuse":
-            if len(l) == 4:
-                msg = prep_msg_for_send(client_id, craft_make_accusation_message(l[1], l[2], l[3]))
-                await conn_manager.requests.put(msg)
-            else:
-                print("accuse: command format not recognized.  Please enter:")
-                print("     accuse <card1> <card2> <card3>")
-        elif l[0] == "end":
-            if l[1] == "turn":
-                msg = prep_msg_for_send(client_id, craft_end_turn_message())
-                await conn_manager.requests.put(msg)
-            else:
-                print("end: command format not recognized.  Did you mean <end turn> ?")
-                continue
-        elif l[0] == "leave":
-            if l[1] == "game":
-                msg = prep_msg_for_send(client_id, craft_leave_game_message())
-                await conn_manager.requests.put(msg)
-            else:
-                print("leave: command format not recognized.  Did you mean <leave game> ?")
-                continue
-
+            continue
+        else:
+            print("command format not recognized")
+            continue
+            
+            
 
 async def main():
 
