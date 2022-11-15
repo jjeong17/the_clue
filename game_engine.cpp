@@ -91,7 +91,6 @@ int Game::make_accusation(int player_id1, int player_id2, int weapon_id, int loc
     }
     //Player* p1 = player_manager->getPlayer(player_id1);
     return true;
-    
 }
 int Game::get_game_id()
 {
