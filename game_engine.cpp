@@ -54,6 +54,7 @@ int Game::make_move(int player_id, int move_option)
 {
     //I am assuming the move_option will map exactly to the 
     //number system the board uses for indexing locations
+    printf("Move requested player %d to location %d\n", player_id, move_option);
     Player* p = player_manager->getPlayer(player_id);
     return board->movePiece(p->getCharacter(), move_option);
     

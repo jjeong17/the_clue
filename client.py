@@ -22,7 +22,7 @@ def craft_checkin_message():
 
 def craft_create_game_message():
     # message_type for create game = 14
-    return struct.pack("!I", 14)
+    return struct.pack("!I", 14) + struct.pack("<I", CLIENT_ID)
 
 def craft_join_game_message(game_id: int):
     # message_type for join game = 15

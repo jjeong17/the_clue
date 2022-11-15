@@ -108,11 +108,19 @@ Response* parse_command(std::vector<Game*>* game_list, Command* command_in)
 Response* parse_new_game_command(std::vector<Game*>* game_list, Command* command_in)
 {
     int new_game_id;
+    int player_id;
     Response* response;
 
     Game* new_game = new Game();
     new_game_id = new_game->get_game_id();
+
+    // Add player to the game
+    // player id is args+0x0 interpreted as a 4-byte integer
+    player_id = *((int*)(command_in->args));
+    new_game->add_player(player_id);
+
     game_list->push_back(new_game);
+
     // 21: Game succesfully created ret code
     // msg: 4-byte game id cast to a char*
     response = alloc_response(21, (char*)(&new_game_id), 4);
@@ -197,6 +205,6 @@ Response* parse_make_move_command(std::vector<Game*>* game_list, Command* comman
     }
     (*game_list)[game_index]->make_move(player_id, move_option);
 
-    response = alloc_response(25, "Requested game is full\n", strlen("Requested game is full\n") + 1);
+    response = alloc_response(25, "Move made succesfully\n", strlen("Move made succesfully\n") + 1);
     return response;
 }
