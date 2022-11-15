@@ -13,6 +13,10 @@ class Card;
 class Game
 {
 private:
+
+    bool validPlayer(int player_id);
+
+    std::vector<int> invalid_players;
     static int num_games; // Counter to store the number of active games
     int id; // The unique id of this game
     Player_Manager* player_manager; // The player manager for this game instance
@@ -21,10 +25,13 @@ private:
 public:
     Game();
     ~Game();
+    
     int add_player(int);
     int start_game();
     int end_game();
     int make_move(int, int);
+    int make_suggestion(int player_id1, int player_id2, int location);
+    int make_accusation(int player_id1, int player_id2, int weapon_id, int location)
     int get_game_id();
 };
 
@@ -33,7 +40,6 @@ class Player_Manager
 private:
     int num_players;
     std::map<int, Player*> player_list;
-    //std::vector<Player*> player_list;
     std::map<int, std::string> player_to_character;
     std::string characters[6] = {"MISS_SCARLETT", "PROFESSOR_PLUM",
     "COLONEL_MUSTARD", "MRS_PEACOCK", "MR_GREEN", "MRS_WHITE"};

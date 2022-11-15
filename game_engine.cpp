@@ -40,6 +40,16 @@ int Game::add_player(int player_id)
     int ret = this->player_manager->add_player(player_id);
     return ret;
 }
+
+bool Game::validPlayer(int player_id){
+    for(int i = 0; i < invalid_players.size(); ++i){
+        if(invalid_players[i] == player_id){
+            return false;
+        }
+    }
+    return true;
+}
+
 int Game::start_game()
 {
     // TODO: Implement this function
@@ -52,12 +62,35 @@ int Game::end_game()
 }
 int Game::make_move(int player_id, int move_option)
 {
+    if(!validPlayer(player_id)){
+        std::cout << "Player is eliminated" << std::endl;
+        return false;
+    }
     //I am assuming the move_option will map exactly to the 
     //number system the board uses for indexing locations
     printf("Move requested player %d to location %d\n", player_id, move_option);
     Player* p = player_manager->getPlayer(player_id);
     return board->movePiece(p->getCharacter(), move_option);
     
+}
+
+int Game::make_suggestion(int player_id1, int player_id2, int weapon_id, int location){
+    if(!validPlayer(player_id1)){
+        std::cout << "Player is eliminated" << std::endl;
+        return false;
+    }
+    Player* p1 = player_manager->getPlayer(player_id);
+    Player* p2 = player_manager->getPlayer(player_id);
+    return = board->suggestionMove(p1->getCharacter(), p2->getCharacter(), location);
+}
+
+int Game::make_accusation(int player_id1, int player_id2, int weapon_id, int location){
+    if(!validPlayer(player_id1)){
+        std::cout << "Player is eliminated" << std::endl;
+        return false;
+    }
+    //Player* p1 = player_manager->getPlayer(player_id1);
+    return true;
     
 }
 int Game::get_game_id()
