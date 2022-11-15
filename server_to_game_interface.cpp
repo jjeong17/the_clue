@@ -21,6 +21,7 @@ extern "C" void free_response(Response*);
 Response* parse_new_game_command(std::vector<Game*>*, Command*);
 Response* parse_join_game_command(std::vector<Game*>*, Command*);
 Response* parse_make_move_command(std::vector<Game*>*, Command*);
+Response* parse_make_suggestion_command(std::vector<Game*>*, Command*);
 
 // List of all the current games
 // std::vector<Game*>* game_list;
@@ -95,6 +96,11 @@ Response* parse_command(std::vector<Game*>* game_list, Command* command_in)
         case 31:
             // Make Move command
             response = parse_make_move_command(game_list, command_in);
+            free_command(command_in);
+            return response;
+        case 36:
+            // Make suggestion command
+            response = parse_make_suggestion_command(game_list, command_in);
             free_command(command_in);
             return response;
         default:
@@ -206,5 +212,50 @@ Response* parse_make_move_command(std::vector<Game*>* game_list, Command* comman
     (*game_list)[game_index]->make_move(player_id, move_option);
 
     response = alloc_response(25, "Move made succesfully\n", strlen("Move made succesfully\n") + 1);
+    return response;
+}
+
+Response* parse_make_suggestion_command(std::vector<Game*>* game_list, Command* command_in)
+{
+    Response* response;
+    int game_id;
+    int player_id;
+    int target_player_id;
+    int weapon_id;
+    int target_location;
+    int game_index;
+
+    // game id is args+0x0 interpreted as a 4-byte integer
+    game_id = *((int*)command_in->args);
+
+    // player_id is args+0x4 interpreted as a 4-byte integer
+    player_id = *((int*)(command_in->args + 4));
+
+    // target_player_id is args+0x8 interpreted as a 4-byte integer
+    target_player_id = *((int*)(command_in->args + 8));
+    
+    // weapon_id is args+0xc interpreted as a 4-byte integer
+    weapon_id = *((int*)(command_in->args + 0xc));
+
+    // target_location is args+0x10 interpreted as a 4-byte integer
+    target_location = *((int*)(command_in->args + 0x10));
+
+    for (int i = 0; i < game_list->size(); i++)
+    {
+        if ((*game_list)[i]->get_game_id() == game_id)
+        {
+            game_index = i;
+        }
+    }
+    if (game_index == -1)
+    {
+        // 24: Game does not exist retcode
+        response = alloc_response(24, "Requested Game Does Not Exist\n", strlen("Requested Game Does Not Exist\n") + 1);
+        return response;
+    }
+
+    (*game_list)[game_index]->make_suggestion(player_id, target_player_id, weapon_id, target_location);
+
+    response = alloc_response(25, "Suggestion made succesfully\n", strlen("Suggestion made succesfully\n") + 1);
     return response;
 }

@@ -32,6 +32,8 @@ def craft_make_move_message(move_option: int):
     # message_type for make move = 31
     return struct.pack("!I", 31) + struct.pack("<I", global_game_id) + struct.pack("<I", CLIENT_ID) + struct.pack("<I", move_option)
 
+def craft_make_suggestion_message(other_player_id: int, weapon_id: int, location: int):
+    return struct.pack("!I", 36) + struct.pack("<I", global_game_id) + struct.pack("<I", CLIENT_ID) + struct.pack("<I", other_player_id) + struct.pack("<I", weapon_id) + struct.pack("<I", location)
 
 def prep_msg_for_send(client_id: int, message: bytes):
     magic_bytes = 0x12345678
@@ -103,6 +105,7 @@ async def shell(client_id, conn_manager: Connection_Manager):
                 print("     gameid <= Shows current game")
                 print("")
                 print("     move <move option> <= make a move")
+                print("     suggestion <other player id> <weapon> <location> <= make a suggestion")
                 continue
             if l[0] == "gameid":
                 if (global_game_id == -1):
@@ -130,13 +133,23 @@ async def shell(client_id, conn_manager: Connection_Manager):
                 continue
         elif l[0] == "move":
             if (global_game_id == -1):
-                    print("You have not joined a game")
-                    continue
+                print("You have not joined a game")
+                continue
             move_option = int(l[1])
             if move_option < 0 or move_option > 20:
                 print("Invalid move option!")
                 continue
             msg = prep_msg_for_send(client_id, craft_make_move_message(move_option))
+            await conn_manager.requests.put(msg)
+            continue
+        elif l[0] == "suggestion":
+            if (global_game_id == -1):
+                print("You have not joined a game")
+                continue
+            target_player = int(l[1])
+            weapon = int(l[2])
+            location = int(l[3])
+            msg = prep_msg_for_send(client_id, craft_make_suggestion_message(target_player, weapon, location))
             await conn_manager.requests.put(msg)
             continue
         else:

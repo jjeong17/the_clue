@@ -58,7 +58,6 @@ int Game::make_move(int player_id, int move_option)
     Player* p = player_manager->getPlayer(player_id);
     return board->movePiece(p->getCharacter(), move_option);
     
-    
 }
 int Game::get_game_id()
 {
