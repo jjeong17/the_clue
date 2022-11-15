@@ -11,24 +11,22 @@ Game::Game()
     // TODO: Implement construction of new Player_Manager instance
     this->player_manager = new Player_Manager();
     board = new Board();
+	Deck* deck = new Deck();
 
-	Deck deck;
-	Card* culprit_deck = deck.GenerateCulpritCardDeck();
-	Card* non_culprit_deck = deck.GenerateNonCulpritCardDeck(culprit_deck);
-	Card* shuffled_non_culprit_deck = deck.ShuffleDeck(non_culprit_deck);
+	Card* culprit_cards = deck->getCulpritCards();
+	Card* non_culprit_cards = deck->getNonCulpritCards();
 
-	// Logging Deck Status
-//	std::cout << "Starting Deck Setup" << std::endl;
-//	std::cout << "[Culprit_deck]" << std::endl;
+// Logging
+//	std::cout << "[Check culprit_deck]" << std::endl;
 //	for (int i = 0; i < num_culprit_cards; i++) {
-//		std::cout << culprit_deck[i].getName() << " " << culprit_deck[i].getType() <<  " | ";
+//		std::cout << culprit_cards[i].getName() << " " << culprit_cards[i].getType() <<  " | ";
 //	}
+//
 //	std::cout << "\n===================" << std::endl;
-//	std::cout << "[Non-Culprit_deck]" << std::endl;
+//	std::cout << "[Check Shuffle non_culprit_deck]" << std::endl;
 //	for (int i = 0; i < num_non_culprit_cards; i++) {
-//		std::cout << shuffled_non_culprit_deck[i].getName() << " ";
+//		std::cout << non_culprit_cards[i].getName() << " ";
 //	}
-//	std::cout << "\n===================" << std::endl;
 }
 Game::~Game()
 {

@@ -6,9 +6,30 @@
 #include <iostream>
 
 Deck::Deck() {
+	Card* culprit_cards = this->generateCulpritCardDeck();
+	Card* non_culprit_cards = this->generateNonCulpritCardDeck(culprit_cards);
+	Card* shuffled_non_culprit_cards = this->shuffleDeck(non_culprit_cards);
+	setCulpritCards(culprit_cards);
+	setNonCulpritCards(shuffled_non_culprit_cards);
 }
 
-Card* Deck::GenerateCulpritCardDeck()
+void Deck::setCulpritCards(Card* culprit_cards) {
+	this->culprit_cards = culprit_cards;
+}
+
+void Deck::setNonCulpritCards(Card* non_culprit_cards) {
+	this->non_culprit_cards = non_culprit_cards;
+}
+
+Card* Deck::getCulpritCards() {
+	return this->culprit_cards;
+};
+
+Card* Deck::getNonCulpritCards() {
+	return this->non_culprit_cards;
+}
+
+Card* Deck::generateCulpritCardDeck()
 {
 	int random_room_idx = (rand()%9);
 	int random_suspect_idx = (rand()%6);
@@ -42,7 +63,7 @@ Card* Deck::GenerateCulpritCardDeck()
 }
 
 
-Card* Deck::GenerateNonCulpritCardDeck(Card* culprit_deck) {
+Card* Deck::generateNonCulpritCardDeck(Card* culprit_deck) {
 	Card* culprit_room_card = &culprit_deck[0];
 	Card* culprit_suspect_card = &culprit_deck[1];
 	Card* culprit_weapon_card = &culprit_deck[2];
@@ -88,7 +109,7 @@ Card* Deck::GenerateNonCulpritCardDeck(Card* culprit_deck) {
 	return non_culprit_card;
 }
 
-Card* Deck::ShuffleDeck(Card* non_culprit_cards) {
+Card* Deck::shuffleDeck(Card* non_culprit_cards) {
 	Card temp_card = non_culprit_cards[0];
 	int random_idx = 0;
 

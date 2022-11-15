@@ -72,11 +72,19 @@ public:
 };
 
 class Deck {
+	Card* culprit_cards;
+	Card* non_culprit_cards;
+private:
+	Card* generateCulpritCardDeck();
+	Card* generateNonCulpritCardDeck(Card* culprit_deck);
+	Card* shuffleDeck(Card* non_culprit_cards);
+	void setCulpritCards(Card* cards);
+	void setNonCulpritCards(Card* cards);
 public:
 	Deck();
-	Card* GenerateCulpritCardDeck();
-	Card* GenerateNonCulpritCardDeck(Card* culprit_deck);
-	Card* ShuffleDeck(Card* non_culprit_cards);
+
+	Card* getCulpritCards();
+	Card* getNonCulpritCards();
 };
 
 #endif //THE_CLUE_DECK_H
