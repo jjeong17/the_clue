@@ -148,7 +148,7 @@ bool Board::isRoom(int a){
 
 bool Board::hallwayClear(int a){
     for(int i = 0; i < main_board[a].size(); ++i){
-        if(main_board[a][i].getType() == 1){
+        if(main_board[a][i].get_type() == 1){
             return false;
         }
     }

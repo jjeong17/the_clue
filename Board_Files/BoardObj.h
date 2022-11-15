@@ -11,7 +11,7 @@ class BoardObj{
         std::string getName();
         int getLocation();
         void setLocation(int);
-        int getType();
+        int get_type();
         
     private:
         std::string m_name;

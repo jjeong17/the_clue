@@ -62,12 +62,12 @@ public:
 	Card();
 
 	// Getter
-	std::string getName();
-	CardType getType();
+	std::string get_name();
+	CardType get_type();
 
 	// Setter
-	void setName(std::string name);
-	void setType(CardType type);
+	void set_name(std::string name);
+	void set_type(CardType type);
 	void setIsOwned(bool is_owned);
 };
 
@@ -75,16 +75,16 @@ class Deck {
 	Card* culprit_cards;
 	Card* non_culprit_cards;
 private:
-	Card* generateCulpritCardDeck();
-	Card* generateNonCulpritCardDeck(Card* culprit_deck);
-	Card* shuffleDeck(Card* non_culprit_cards);
-	void setCulpritCards(Card* cards);
-	void setNonCulpritCards(Card* cards);
+	Card* generate_culprit_card_deck();
+	Card* generate_non_culprit_card_deck(Card* culprit_deck);
+	Card* shuffle_deck(Card* non_culprit_cards);
+	void set_culprit_cards(Card* cards);
+	void set_non_culprit_cards(Card* cards);
 public:
 	Deck();
 
-	Card* getCulpritCards();
-	Card* getNonCulpritCards();
+	Card* get_culprit_cards();
+	Card* get_non_culprit_cards();
 };
 
 #endif //THE_CLUE_DECK_H

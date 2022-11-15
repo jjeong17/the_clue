@@ -27,6 +27,6 @@ int BoardObj::getLocation(){
 void BoardObj::setLocation(int new_loc){
     m_board_location = new_loc;
 }
-int BoardObj::getType(){
+int BoardObj::get_type(){
     return m_obj_type;
 }
