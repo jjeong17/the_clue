@@ -9,6 +9,7 @@ PORT = 8687
 
 CLIENT_ID = 15
 
+global_game_id = -1
 
 class Connection_Manager:
     def __init__(self):
@@ -27,6 +28,10 @@ def craft_join_game_message(game_id: int):
     # message_type for join game = 15
     return struct.pack("!I", 15) + struct.pack("<I", game_id)
 
+def craft_make_move_message(move_option: int):
+    # message_type for make move = 31
+    return struct.pack("!I", 31) + struct.pack("<I", global_game_id) + struct.pack("<I", move_option)
+
 
 def prep_msg_for_send(client_id: int, message: bytes):
     magic_bytes = 0x12345678
@@ -39,6 +44,7 @@ def prep_msg_for_send(client_id: int, message: bytes):
     return header + message
 
 async def parse_response(sock_fd) -> bytes:
+    global global_game_id
     magic_bytes_recv = struct.unpack("!I", sock_fd.recv(4))[0]
     if magic_bytes_recv != 0x1234:
         print(f"Magic bytes: {magic_bytes_recv} Problem!")
@@ -57,7 +63,12 @@ async def parse_response(sock_fd) -> bytes:
 
     if response_opcode == 21:
         game_id = struct.unpack("<I", data[8:12])[0]
-        return f"Game with id: {game_id} successfully created!"
+        global_game_id = game_id
+        return f"Game with id: {global_game_id} successfully created!"
+    elif response_opcode == 23:
+        game_id = struct.unpack("<I", data[8:12])[0]
+        global_game_id = game_id
+        return f"Game with id: {global_game_id} successfully joined!"
     else:
         return data[8:].strip(b'\x00')
 
@@ -77,6 +88,7 @@ async def manage_connection(conn: Connection_Manager, sock_fd):
         print(f"Message from server received: {out}")
 
 async def shell(client_id, conn_manager: Connection_Manager):
+    global global_game_id
     while True:
         a = await aioconsole.ainput(">>")
         l = a.split()
@@ -88,6 +100,15 @@ async def shell(client_id, conn_manager: Connection_Manager):
                 print("Help Menu:")
                 print("     game join <game id>")
                 print("     game create")
+                print("     gameid <= Shows current game")
+                print("")
+                print("     move <move option> <= make a move")
+                continue
+            if l[0] == "gameid":
+                if (global_game_id == -1):
+                    print("You have not joined a game")
+                    continue
+                print(f"You are in game with id: {global_game_id}")
                 continue
             else:
                 print(f"Unknown Command: {l[0]}")
@@ -105,8 +126,24 @@ async def shell(client_id, conn_manager: Connection_Manager):
                 msg = prep_msg_for_send(client_id, craft_create_game_message())
                 await conn_manager.requests.put(msg)
             else:
-                print("command format not recognized")
+                print("game: command format not recognized")
                 continue
+        elif l[0] == "move":
+            if (global_game_id == -1):
+                    print("You have not joined a game")
+                    continue
+            move_option = int(l[1])
+            if move_option < 0 or move_option > 20:
+                print("Invalid move option!")
+                continue
+            msg = prep_msg_for_send(client_id, craft_make_move_message(move_option))
+            await conn_manager.requests.put(msg)
+            continue
+        else:
+            print("command format not recognized")
+            continue
+            
+            
 
 async def main():
 
