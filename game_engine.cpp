@@ -62,6 +62,7 @@ int Game::end_game()
 }
 int Game::make_move(int player_id, int move_option)
 {
+    int ret_code;
     if(!validPlayer(player_id)){
         std::cout << "Player is eliminated" << std::endl;
         return false;
@@ -70,18 +71,22 @@ int Game::make_move(int player_id, int move_option)
     //number system the board uses for indexing locations
     printf("Move requested player %d to location %d\n", player_id, move_option);
     Player* p = player_manager->getPlayer(player_id);
-    return board->movePiece(p->getCharacter(), move_option);
-    
+    ret_code = board->movePiece(p->getCharacter(), move_option);
+    board->printBoard();
+    return ret_code;
 }
 
 int Game::make_suggestion(int player_id1, int player_id2, int weapon_id, int location){
+    int ret_code;
     if(!validPlayer(player_id1)){
         std::cout << "Player is eliminated" << std::endl;
         return false;
     }
-    Player* p1 = player_manager->getPlayer(player_id);
-    Player* p2 = player_manager->getPlayer(player_id);
-    return = board->suggestionMove(p1->getCharacter(), p2->getCharacter(), location);
+    Player* p1 = player_manager->getPlayer(player_id1);
+    Player* p2 = player_manager->getPlayer(player_id2);
+    ret_code = board->suggestionMove(p1->getCharacter(), p2->getCharacter(), location);
+    board->printBoard();
+    return ret_code;
 }
 
 int Game::make_accusation(int player_id1, int player_id2, int weapon_id, int location){
@@ -114,11 +119,11 @@ int Player_Manager::add_player(int player_id)
         // Too many players in game
         return 0;
     }
-    num_players += 1;
 
     Player* player = new Player(player_id, num_players, characters[num_players]);
     player_list[player_id] = player;
 
+    num_players += 1;
     // TODO: Implement the rest of this function
 
     return 1;

@@ -184,6 +184,7 @@ Response* parse_make_move_command(std::vector<Game*>* game_list, Command* comman
     int player_id;
     int move_option;
     int game_index = -1;
+    int ret_code;
 
     // game id is args+0x0 interpreted as a 4-byte integer
     game_id = *((int*)command_in->args);
@@ -209,7 +210,13 @@ Response* parse_make_move_command(std::vector<Game*>* game_list, Command* comman
         response = alloc_response(24, "Requested Game Does Not Exist\n", strlen("Requested Game Does Not Exist\n") + 1);
         return response;
     }
-    (*game_list)[game_index]->make_move(player_id, move_option);
+    ret_code = (*game_list)[game_index]->make_move(player_id, move_option);
+
+    if (ret_code == 0)
+    {
+        response = alloc_response(25, "Invalid Move\n", strlen("Invalid Move\n") + 1);
+        return response;
+    }
 
     response = alloc_response(25, "Move made succesfully\n", strlen("Move made succesfully\n") + 1);
     return response;
@@ -254,6 +261,7 @@ Response* parse_make_suggestion_command(std::vector<Game*>* game_list, Command* 
         return response;
     }
 
+    printf("%d %d %d %d %d\n", game_id, player_id, target_player_id, weapon_id, target_location);
     (*game_list)[game_index]->make_suggestion(player_id, target_player_id, weapon_id, target_location);
 
     response = alloc_response(25, "Suggestion made succesfully\n", strlen("Suggestion made succesfully\n") + 1);

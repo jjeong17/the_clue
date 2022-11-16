@@ -30,8 +30,8 @@ public:
     int start_game();
     int end_game();
     int make_move(int, int);
-    int make_suggestion(int player_id1, int player_id2, int location);
-    int make_accusation(int player_id1, int player_id2, int weapon_id, int location)
+    int make_suggestion(int, int, int, int);
+    int make_accusation(int player_id1, int player_id2, int weapon_id, int location);
     int get_game_id();
 };
 
