@@ -78,7 +78,7 @@ class Deck {
 private:
 	Card m_culprit_deck[3];
 	Card m_non_culprit_deck[18];
-
+	int dealing_index = 0;
 	void generate_culprit_card_deck();
 	void generate_non_culprit_card_deck();
 	void shuffle_deck();
@@ -87,10 +87,11 @@ private:
 	
 public:
 	Deck();
-	bool accusationMatch(std::string, std::string, std::string);
+	bool accusation_match(std::string, std::string, std::string);
 	//card pointer to start moving cards and int for number of cards
 	//to deal
-	void dealCards(Card*, int);
+
+	Card getCard();
 
 };
 

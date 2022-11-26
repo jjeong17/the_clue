@@ -11,7 +11,7 @@ Game::Game()
     this->player_manager = new Player_Manager();
     board = new Board();
 	deck = new Deck();
-
+    
 	// Logging Deck Status
 //	std::cout << "Starting Deck Setup" << std::endl;
 //	std::cout << "[Culprit_deck]" << std::endl;
@@ -47,6 +47,7 @@ bool Game::validPlayer(int player_id){
 
 int Game::start_game()
 {
+    player_manager->start_game(deck);
     // TODO: Implement this function
     return 0;
 }
@@ -54,6 +55,10 @@ int Game::end_game()
 {
     // TODO: Implement this function
     return 0;
+}
+
+void Game::see_hand(int player_id){
+    player_manager->getPlayer(player_id)->print_hand();
 }
 int Game::make_move(int player_id, int move_option)
 {
@@ -78,8 +83,13 @@ int Game::make_suggestion(int player_id1, int player_id2, int weapon_id, int loc
     }
     Player* p1 = player_manager->getPlayer(player_id1);
     Player* p2 = player_manager->getPlayer(player_id2);
-    ret_code = board->suggestionMove(p1->getCharacter(), p2->getCharacter(), location);
-    board->printBoard();
+    if(!board->suggestionMove(p1->getCharacter(), p2->getCharacter(), location)){
+        std::cout << "INVALID SUGGESTION" << std::endl;
+        return 0;
+    }
+    
+    //board->printBoard();
+
     return ret_code;
 }
 
@@ -97,10 +107,11 @@ int Game::make_accusation(int player_id1, int player_id2, int weapon_id, int loc
     std::cout << "weapon = " << accused_weapon << std::endl;
     std::cout << "location = " << accused_location << std::endl;
     
-    if(deck->accusationMatch(accused_name, accused_weapon, accused_location)){
+    if(deck->accusation_match(accused_name, accused_weapon, accused_location)){
         std::cout << player_manager->getPlayer(player_id1)->getCharacter() << " wins!" << std::endl;
     }else{
         std::cout << "Accusation Incorrect" << std::endl;
+        invalid_players.push_back(player_id1);
         std::cout << player_manager->getPlayer(player_id1)->getCharacter() << " eliminated" << std::endl;
         return false;
     }
@@ -120,6 +131,17 @@ int Game::num_games = 0;
 Player_Manager::Player_Manager()
 {
     num_players = 0;
+}
+
+void Player_Manager::start_game(Deck* game_deck){
+    int cards_per_player = 18 / num_players;
+    std::map<int, Player*>::iterator it;
+    int index = 0;
+    for(it = player_list.begin(); it != player_list.end(); it++){
+        for(int j = 0; j < cards_per_player; j++){
+            it->second->addCard(game_deck->getCard());
+        }
+    }
 }
 int Player_Manager::add_player(int player_id)
 {
@@ -159,4 +181,15 @@ Player::Player(int player_id_, int position_, std::string character_)
 std::string Player::getCharacter()
 {
     return selected_character;
+}
+
+void Player::addCard(Card a){
+    hand.push_back(a);
+}
+
+void Player::print_hand(){
+    for(int i = 0; i < hand.size(); i++){
+
+        std::cout << "\t" << hand[i].get_name() << "\n";
+    }
 }

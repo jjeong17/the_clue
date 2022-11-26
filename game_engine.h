@@ -49,6 +49,7 @@ public:
     
     int add_player(int);
     int start_game();
+    void see_hand(int);
     int end_game();
     int make_move(int, int);
     int make_suggestion(int, int, int, int);
@@ -69,7 +70,10 @@ private:
 public:
     Player_Manager();
     ~Player_Manager();
+    void start_game(Deck*);
     int add_player(int);
+   
+    
     Player* getPlayer(int);
 };
 
@@ -80,11 +84,13 @@ private:
     int position; // Position at imaginary "table" -- to determine who goes in what order
     std::string selected_character;
     std::string username;
-    std::vector<Card*> hand;
+    std::vector<Card> hand;
 public:
     Player();
     Player(int, int, std::string);
     bool hasCard(std::string);
+    void addCard(Card);
+    void print_hand();
     std::string getCharacter();
 
     ~Player();

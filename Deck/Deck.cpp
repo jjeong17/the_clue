@@ -23,7 +23,7 @@ bool Deck::isCulprit(std::string title){
 	return false;
 }
 
-bool Deck::accusationMatch(std::string player, std::string weapon, std::string location){
+bool Deck::accusation_match(std::string player, std::string weapon, std::string location){
 	
 	bool res = true;
 	if(isCulprit(player) && isCulprit(weapon) && isCulprit(location)){
@@ -63,7 +63,6 @@ void Deck::generate_culprit_card_deck()
 	m_culprit_deck[1] = culprit_suspect_card;
 	m_culprit_deck[2] = culprit_weapon_card;
 }
-
 
 void Deck::generate_non_culprit_card_deck() {
 	Card culprit_room_card = m_culprit_deck[0];
@@ -120,6 +119,16 @@ void Deck::shuffle_deck() {
 		m_non_culprit_deck[random_idx] = temp_card;
 	}
 }
+
+Card Deck::getCard(){
+	
+	if(dealing_index >= num_non_culprit_cards){
+		throw "No Cards Left";
+	}
+	dealing_index++;
+	return m_non_culprit_deck[dealing_index-1];
+}
+
 
 Card::Card() {}
 

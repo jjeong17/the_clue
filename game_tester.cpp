@@ -11,8 +11,12 @@ int main(){
     my_game.add_player(4);
     my_game.add_player(5);
     my_game.add_player(6);
-    
-    my_game.make_accusation(1, 6, 4, 16);
+    my_game.start_game();
+    for(int i = 1; i < 7; i++){
+        std::cout << "printing hand of player " << i << std::endl;
+        my_game.see_hand(i);
+    }
+    //my_game.make_accusation(1, 6, 4, 16);
 
     return 0;
 }
