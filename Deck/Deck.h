@@ -7,6 +7,8 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
+#include <string>
 
 const int num_rooms = 9;
 const int num_suspects = 6;
@@ -74,19 +76,22 @@ public:
 
 class Deck {
 private:
-	std::vector<Card> m_culprit_cards;
-	std::vector<Card> m_non_culprit_cards;
+	Card m_culprit_deck[3];
+	Card m_non_culprit_deck[18];
 
-	std::vector<Card> generate_culprit_card_deck();
-	std::vector<Card> generate_non_culprit_card_deck(Card* culprit_deck);
-	std::vector<Card> shuffle_deck(Card* non_culprit_cards);
-	void set_culprit_cards(Card* cards);
-	void set_non_culprit_cards(Card* cards);
+	void generate_culprit_card_deck();
+	void generate_non_culprit_card_deck();
+	void shuffle_deck();
+
+	bool isCulprit(std::string);
+	
 public:
 	Deck();
+	bool accusationMatch(std::string, std::string, std::string);
+	//card pointer to start moving cards and int for number of cards
+	//to deal
+	void dealCards(Card*, int);
 
-	std::vector<Card> get_culprit_cards();
-	std::vector<Card> get_non_culprit_cards();
 };
 
 #endif //THE_CLUE_DECK_H

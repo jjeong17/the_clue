@@ -12,6 +12,7 @@ int main(){
     my_game.add_player(5);
     my_game.add_player(6);
     
+    my_game.make_accusation(1, 6, 4, 16);
 
     return 0;
 }

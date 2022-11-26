@@ -8,14 +8,9 @@ Game::Game()
 {
     this->id = num_games;
     num_games += 1;
-    // TODO: Implement construction of new Player_Manager instance
     this->player_manager = new Player_Manager();
     board = new Board();
-
-	Deck deck;
-	Card* culprit_deck = deck.generate_culprit_card_deck();
-	Card* non_culprit_deck = deck.generate_non_culprit_card_deck(culprit_deck);
-	Card* shuffled_non_culprit_deck = deck.shuffle_deck(non_culprit_deck);
+	deck = new Deck();
 
 	// Logging Deck Status
 //	std::cout << "Starting Deck Setup" << std::endl;
@@ -90,17 +85,25 @@ int Game::make_suggestion(int player_id1, int player_id2, int weapon_id, int loc
 
 int Game::make_accusation(int player_id1, int player_id2, int weapon_id, int location){
     if(!validPlayer(player_id1)){
-        std::cout << player_manager->getplayer(player_id1)->getCharacter() << " eliminated" << std::endl;
+        std::cout << player_manager->getPlayer(player_id1)->getCharacter() << " eliminated" << std::endl;
         return false;
     }
-    if(correctAccusation(player_id2, weapon_id, location)){
-        std::cout << player_manager->getplayer(player_id1)->getCharacter() << " wins!" << std::endl;
+    std::string accused_name = player_manager->getPlayer(player_id2)->getCharacter();
+    std::string accused_weapon = weapon_to_string[weapon_id];
+    std::string accused_location = loc_to_string[location];
+
+    std::cout << "Our accusation" << std::endl;
+    std::cout << "name = " << accused_name << std::endl;
+    std::cout << "weapon = " << accused_weapon << std::endl;
+    std::cout << "location = " << accused_location << std::endl;
+    
+    if(deck->accusationMatch(accused_name, accused_weapon, accused_location)){
+        std::cout << player_manager->getPlayer(player_id1)->getCharacter() << " wins!" << std::endl;
     }else{
         std::cout << "Accusation Incorrect" << std::endl;
-        std::cout << player_manager->getplayer(player_id1)->getCharacter() << " eliminated" << std::endl;
+        std::cout << player_manager->getPlayer(player_id1)->getCharacter() << " eliminated" << std::endl;
+        return false;
     }
-
-    //Player* p1 = player_manager->getPlayer(player_id1);
     return true;
 }
 int Game::get_game_id()
@@ -109,9 +112,6 @@ int Game::get_game_id()
 }
 int Game::num_games = 0;
 
-bool Game::correctAccusation(int player, int weapon, int location){
-    
-}
 
 /*
 *   Player Manager function definitions

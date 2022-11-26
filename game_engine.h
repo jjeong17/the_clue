@@ -7,7 +7,6 @@
 class Game;
 class Player_Manager;
 class Player;
-class Location;
 class Card;
 
 class Game
@@ -22,6 +21,28 @@ private:
     Player_Manager* player_manager; // The player manager for this game instance
     Board* board; // The board for this game instance
     Deck* deck; // The deck for this game instance
+
+    std::map<int, std::string> loc_to_string = {
+		{0, "STUDY"},
+		{2, "HALL"},
+		{4, "LOUNGE"},
+		{8, "LIBRARY"},
+		{10, "BILLIARD_ROOM"},
+		{12, "DINING_ROOM"},
+		{16, "CONSERVATORY"},
+		{18, "BALLROOM"},
+		{20, "KITCHEN"}
+	};
+
+    std::map<int, std::string> weapon_to_string = {
+        {0, "DAGGER"},
+        {1, "CANDLESTICK"},
+        {2, "REVOLVER"},
+        {3, "ROPE"},
+        {4, "LEAD_PIPE"},
+        {5, "SPANNER"}
+    };
+
 public:
     Game();
     ~Game();
@@ -67,15 +88,4 @@ public:
     std::string getCharacter();
 
     ~Player();
-};
-
-//I think this location object may be useful to map the UI 
-//indexing to the board indexing if they differ
-class Location
-{
-private:
-    int index;
-public:
-    Location();
-    ~Location();
 };

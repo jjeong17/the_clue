@@ -7,31 +7,32 @@
 #include <vector>
 
 Deck::Deck() {
+
+	this->generate_culprit_card_deck();
+	this->generate_non_culprit_card_deck();
+	this->shuffle_deck();
 	
-	std::vector<Card> culprit_cards = this->generate_culprit_card_deck();
-	std::vector<Card> = this->generate_non_culprit_card_deck(culprit_cards);
-	std::vector<Card> shuffled_non_culprit_cards = this->shuffle_deck(non_culprit_cards);
-	set_culprit_cards(culprit_cards);
-	set_non_culprit_cards(shuffled_non_culprit_cards);
+}
+bool Deck::isCulprit(std::string title){
+	
+	for(int i = 0; i < 3; i++){
+		if(m_culprit_deck[i].get_name() == title){
+			return true;
+		}
+	}
+	return false;
 }
 
-void Deck::set_culprit_cards(Card* culprit_cards) {
-	this->m_culprit_cards = culprit_cards;
+bool Deck::accusationMatch(std::string player, std::string weapon, std::string location){
+	
+	bool res = true;
+	if(isCulprit(player) && isCulprit(weapon) && isCulprit(location)){
+		return true;
+	}
+	return false;
 }
 
-void Deck::set_non_culprit_cards(Card* non_culprit_cards) {
-	this->m_non_culprit_cards = non_culprit_cards;
-}
-
-std::vector<Card> Deck::get_culprit_cards() {
-	return this->m_culprit_cards;
-};
-
-std::vector<Card> Deck::get_non_culprit_cards() {
-	return this->m_non_culprit_cards;
-}
-
-std::vector<Card> Deck::generate_culprit_card_deck()
+void Deck::generate_culprit_card_deck()
 {
 	int random_room_idx = (rand()%9);
 	int random_suspect_idx = (rand()%6);
@@ -57,72 +58,67 @@ std::vector<Card> Deck::generate_culprit_card_deck()
 	culprit_suspect_card.setIsOwned(false);
 	culprit_weapon_card.setIsOwned(false);
 
-	Card* culprit_cards = new Card[3];
-	culprit_cards[0] = culprit_room_card;
-	culprit_cards[1] = culprit_suspect_card;
-	culprit_cards[2] = culprit_weapon_card;
-	return culprit_cards;
+	
+	m_culprit_deck[0] = culprit_room_card;
+	m_culprit_deck[1] = culprit_suspect_card;
+	m_culprit_deck[2] = culprit_weapon_card;
 }
 
 
-std::vector<Card> Deck::generate_non_culprit_card_deck(Card* culprit_deck) {
-	Card* culprit_room_card = &culprit_deck[0];
-	Card* culprit_suspect_card = &culprit_deck[1];
-	Card* culprit_weapon_card = &culprit_deck[2];
+void Deck::generate_non_culprit_card_deck() {
+	Card culprit_room_card = m_culprit_deck[0];
+	Card culprit_suspect_card = m_culprit_deck[1];
+	Card culprit_weapon_card = m_culprit_deck[2];
 
-//	std::cout << culprit_room_card->get_name() << " " << culprit_suspect_card->get_name() << " " << culprit_weapon_card->get_name() << std::endl;
-
-	Card* non_culprit_card = new Card[18];
+	std::cout << culprit_room_card.get_name() << " " << 
+	culprit_suspect_card.get_name() << " " << 
+	culprit_weapon_card.get_name() << std::endl;
 
 	// Room
 	int loop_idx = 0;
 	for (int i = 0; i < num_rooms; i++) {
-		if (room_array[i] != culprit_room_card->get_name()) {
+		if (room_array[i] != culprit_room_card.get_name()) {
 			Card non_culprit_room;
 			non_culprit_room.set_name(room_array[i]);
 			non_culprit_room.set_type(ROOM);
 			non_culprit_room.setIsOwned(true);
-			non_culprit_card[loop_idx++] = non_culprit_room;
+			m_non_culprit_deck[loop_idx++] = non_culprit_room;
 		}
 	}
 
 	// Suspect
 	for (int i = 0; i < num_suspects; i++) {
-		if (suspect_array[i] != culprit_suspect_card->get_name()) {
+		if (suspect_array[i] != culprit_suspect_card.get_name()) {
 			Card non_culprit_suspect;
 			non_culprit_suspect.set_name(suspect_array[i]);
 			non_culprit_suspect.set_type(SUSPECT);
 			non_culprit_suspect.setIsOwned(true);
-			non_culprit_card[loop_idx++] = non_culprit_suspect;
+			m_non_culprit_deck[loop_idx++] = non_culprit_suspect;
 		}
 	}
 
 	// Weapon
 	for (int i = 0; i < num_weapons; i++) {
-		if (weapon_array[i] != culprit_weapon_card->get_name()) {
+		if (weapon_array[i] != culprit_weapon_card.get_name()) {
 			Card non_culprit_weapon;
 			non_culprit_weapon.set_name(weapon_array[i]);
 			non_culprit_weapon.set_type(SUSPECT);
 			non_culprit_weapon.setIsOwned(true);
-			non_culprit_card[loop_idx++] = non_culprit_weapon;
+			m_non_culprit_deck[loop_idx++] = non_culprit_weapon;
 		}
 	}
-
-	return non_culprit_card;
 }
 
-std::vector<Card> Deck::shuffle_deck(std::vector<Card> non_culprit_cards) {
-	Card temp_card = non_culprit_cards[0];
+void Deck::shuffle_deck() {
+	Card temp_card = m_non_culprit_deck[0];
 	int random_idx = 0;
 
 	for (int i = 0; i < num_non_culprit_cards; i++) {
 		random_idx = rand() % num_non_culprit_cards;
-		temp_card = non_culprit_cards[i];
-		non_culprit_cards[i] = non_culprit_cards[random_idx];
-		non_culprit_cards[random_idx] = temp_card;
+		temp_card = m_non_culprit_deck[i];
+		m_non_culprit_deck[i] = m_non_culprit_deck[random_idx];
+		m_non_culprit_deck[random_idx] = temp_card;
 	}
-
-	return non_culprit_cards;
 }
 
 Card::Card() {}
