@@ -31,6 +31,7 @@ public:
     int end_game();
     int make_move(int, int);
     int make_suggestion(int, int, int, int);
+    bool correctAccusation(int, int, int);
     int make_accusation(int player_id1, int player_id2, int weapon_id, int location);
     int get_game_id();
 };
@@ -62,7 +63,9 @@ private:
 public:
     Player();
     Player(int, int, std::string);
+    bool hasCard(std::string);
     std::string getCharacter();
+
     ~Player();
 };
 

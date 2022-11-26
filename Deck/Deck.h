@@ -6,6 +6,7 @@
 #define THE_CLUE_DECK_H
 
 #include <iostream>
+#include <vector>
 
 const int num_rooms = 9;
 const int num_suspects = 6;
@@ -27,12 +28,12 @@ const std::string room_array[num_rooms] = {
 };
 
 const std::string suspect_array[num_suspects] = {
-		"COLONEL_MUSTARD",
-		"PROFESSOR_PLUM",
-		"MR_GREEN",
-		"MRS_PEACOCK",
 		"MISS_SCARLETT",
-		"MRS_WHITE",
+		"PROFESSOR_PLUM",
+		"COLONEL_MUSTARD",
+		"MRS_PEACOCK",
+		"MR_GREEN",
+		"MRS_WHITE"
 };
 
 const std::string weapon_array[num_weapons] = {
@@ -53,30 +54,39 @@ enum CardType
 
 class Card {
 private:
-	int id;
-	CardType type;
-	std::string name;
-	bool Is_Owned;
+	int m_id;
+	CardType m_type;
+	std::string m_name;
+	bool m_is_owned;
 
 public:
 	Card();
 
 	// Getter
-	std::string getName();
-	CardType getType();
+	std::string get_name();
+	CardType get_type();
 
 	// Setter
-	void setName(std::string name);
-	void setType(CardType type);
+	void set_name(std::string name);
+	void set_type(CardType type);
 	void setIsOwned(bool is_owned);
 };
 
 class Deck {
+private:
+	std::vector<Card> m_culprit_cards;
+	std::vector<Card> m_non_culprit_cards;
+
+	std::vector<Card> generate_culprit_card_deck();
+	std::vector<Card> generate_non_culprit_card_deck(Card* culprit_deck);
+	std::vector<Card> shuffle_deck(Card* non_culprit_cards);
+	void set_culprit_cards(Card* cards);
+	void set_non_culprit_cards(Card* cards);
 public:
 	Deck();
-	Card* GenerateCulpritCardDeck();
-	Card* GenerateNonCulpritCardDeck(Card* culprit_deck);
-	Card* ShuffleDeck(Card* non_culprit_cards);
+
+	std::vector<Card> get_culprit_cards();
+	std::vector<Card> get_non_culprit_cards();
 };
 
 #endif //THE_CLUE_DECK_H

@@ -13,9 +13,9 @@ Game::Game()
     board = new Board();
 
 	Deck deck;
-	Card* culprit_deck = deck.GenerateCulpritCardDeck();
-	Card* non_culprit_deck = deck.GenerateNonCulpritCardDeck(culprit_deck);
-	Card* shuffled_non_culprit_deck = deck.ShuffleDeck(non_culprit_deck);
+	Card* culprit_deck = deck.generate_culprit_card_deck();
+	Card* non_culprit_deck = deck.generate_non_culprit_card_deck(culprit_deck);
+	Card* shuffled_non_culprit_deck = deck.shuffle_deck(non_culprit_deck);
 
 	// Logging Deck Status
 //	std::cout << "Starting Deck Setup" << std::endl;
@@ -67,8 +67,7 @@ int Game::make_move(int player_id, int move_option)
         std::cout << "Player is eliminated" << std::endl;
         return false;
     }
-    //I am assuming the move_option will map exactly to the 
-    //number system the board uses for indexing locations
+    
     printf("Move requested player %d to location %d\n", player_id, move_option);
     Player* p = player_manager->getPlayer(player_id);
     ret_code = board->movePiece(p->getCharacter(), move_option);
@@ -91,9 +90,16 @@ int Game::make_suggestion(int player_id1, int player_id2, int weapon_id, int loc
 
 int Game::make_accusation(int player_id1, int player_id2, int weapon_id, int location){
     if(!validPlayer(player_id1)){
-        std::cout << "Player is eliminated" << std::endl;
+        std::cout << player_manager->getplayer(player_id1)->getCharacter() << " eliminated" << std::endl;
         return false;
     }
+    if(correctAccusation(player_id2, weapon_id, location)){
+        std::cout << player_manager->getplayer(player_id1)->getCharacter() << " wins!" << std::endl;
+    }else{
+        std::cout << "Accusation Incorrect" << std::endl;
+        std::cout << player_manager->getplayer(player_id1)->getCharacter() << " eliminated" << std::endl;
+    }
+
     //Player* p1 = player_manager->getPlayer(player_id1);
     return true;
 }
@@ -103,6 +109,9 @@ int Game::get_game_id()
 }
 int Game::num_games = 0;
 
+bool Game::correctAccusation(int player, int weapon, int location){
+    
+}
 
 /*
 *   Player Manager function definitions
