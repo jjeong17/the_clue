@@ -18,9 +18,6 @@ Board::Board(){
     main_board[p5.getLocation()].push_back(p5);
     main_board[p6.getLocation()].push_back(p6);
 
-    
-    
-    //std::vector<int> adjacentLocations[11] = {0};
     adjacentLocations[0].push_back(1);
     adjacentLocations[0].push_back(5);
 
@@ -73,9 +70,6 @@ std::string obj5, std::string obj6){
     main_board[p5.getLocation()].push_back(p5);
     main_board[p6.getLocation()].push_back(p6);
 
-    
-    
-    //std::vector<int> adjacentLocations[11] = {0};
     adjacentLocations[0].push_back(1);
     adjacentLocations[0].push_back(5);
 
@@ -112,7 +106,7 @@ std::string obj5, std::string obj6){
 }
 
 void Board::printBoard(){
-    std::cout << "print board" << std::endl;
+    std::cout << "Printing Board" << std::endl;
     for(int i = 0; i < num_locations; ++i){
         std::cout << "row: " << i << std::endl;
         for(int j = 0; j < main_board[i].size(); ++j){
@@ -195,7 +189,6 @@ std::string p2, int location){
     BoardObj p1Obj = main_board[coordinate_pair1.first][coordinate_pair1.second];
     coordinate_pair2 = findObject(p2);
     BoardObj p2Obj = main_board[coordinate_pair2.first][coordinate_pair2.second];
-    std::cout << "before checks" << std::endl;
     if(!isRoom(location)){
         std::cout << "is not a room" << std::endl;
         return false;
@@ -203,8 +196,9 @@ std::string p2, int location){
     std::pair<int, int> my_pair = findObject(p1);
     if(my_pair.first != location){
         std::cout << "player not in location" << std::endl;
+        return false;
     }
-    std::cout << "before end" << std::endl;
+    
     removeObj(coordinate_pair2.first, coordinate_pair2.second);
     p2Obj.setLocation(location);
     main_board[location].push_back(p2Obj);

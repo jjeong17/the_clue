@@ -19,7 +19,6 @@ Game::~Game()
 }
 int Game::add_player(int player_id)
 {
-    // TODO: Implement this function
     int ret = this->player_manager->add_player(player_id);
     return ret;
 }
@@ -36,12 +35,13 @@ bool Game::validPlayer(int player_id){
 int Game::start_game()
 {
     player_manager->start_game(deck);
-    // TODO: Implement this function
+    board->printBoard();
+    
     return 0;
 }
 int Game::end_game()
 {
-    // TODO: Implement this function
+    board->printBoard();
     return 0;
 }
 
@@ -78,8 +78,6 @@ int Game::make_suggestion(int player_id1, int player_id2, int weapon_id, int loc
     std::string accused_weapon = weapon_to_string[weapon_id];
     std::string accused_location = loc_to_string[location];
     player_manager->suggestion_check(p1->getCharacter(), p2->getCharacter(), accused_weapon, accused_location);
-    
-    //board->printBoard();
 
     return ret_code;
 }
@@ -146,7 +144,6 @@ int Player_Manager::add_player(int player_id)
     player_list[player_id] = player;
 
     num_players += 1;
-    // TODO: Implement the rest of this function
 
     return 1;
 }
@@ -160,21 +157,21 @@ void Player_Manager::suggestion_check(std::string p1, std::string p2, std::strin
         }
     }
     it++;
-    for(int i = 0; i < 5; i++){
+    for(int i = 0; i < num_players-1; i++){
         if(it == player_list.end()){
             it = player_list.begin();
         }
         if(it->second->hasCard(p2)){
-            std::cout << "from player " << it->second->getCharacter();
-            std::cout << " " << p2 << std::endl;
+            std::cout << "from player " << it->second->getCharacter() << "\n";
+            std::cout << "\t" << p2 << std::endl;
             return;
         }else if(it->second->hasCard(weapon)){
-            std::cout << "from player " << it->second->getCharacter();
-            std::cout << " " << weapon << std::endl;
+            std::cout << "from player " << it->second->getCharacter() << "\n";
+            std::cout << "\t" << weapon << std::endl;
             return;
         }else if(it->second->hasCard(loc)){
-            std::cout << "from player " << it->second->getCharacter();
-            std::cout << " " << loc << std::endl;
+            std::cout << "from player " << it->second->getCharacter() << "\n";
+            std::cout << "\t" << loc << std::endl;
             return;
         }
         it++;

@@ -16,7 +16,9 @@ int main(){
         std::cout << "printing hand of player " << i << std::endl;
         my_game.see_hand(i);
     }
-    //my_game.make_accusation(1, 6, 4, 16);
+    my_game.make_move(1, 4);
+    my_game.make_suggestion(1, 5, 3, 4);
+    my_game.end_game();
 
     return 0;
 }
