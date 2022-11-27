@@ -71,6 +71,7 @@ public:
     Player_Manager();
     ~Player_Manager();
     void start_game(Deck*);
+    void suggestion_check(std::string, std::string, std::string, std::string);
     int add_player(int);
    
     

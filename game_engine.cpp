@@ -11,19 +11,7 @@ Game::Game()
     this->player_manager = new Player_Manager();
     board = new Board();
 	deck = new Deck();
-    
-	// Logging Deck Status
-//	std::cout << "Starting Deck Setup" << std::endl;
-//	std::cout << "[Culprit_deck]" << std::endl;
-//	for (int i = 0; i < num_culprit_cards; i++) {
-//		std::cout << culprit_deck[i].getName() << " " << culprit_deck[i].getType() <<  " | ";
-//	}
-//	std::cout << "\n===================" << std::endl;
-//	std::cout << "[Non-Culprit_deck]" << std::endl;
-//	for (int i = 0; i < num_non_culprit_cards; i++) {
-//		std::cout << shuffled_non_culprit_deck[i].getName() << " ";
-//	}
-//	std::cout << "\n===================" << std::endl;
+
 }
 Game::~Game()
 {
@@ -87,6 +75,9 @@ int Game::make_suggestion(int player_id1, int player_id2, int weapon_id, int loc
         std::cout << "INVALID SUGGESTION" << std::endl;
         return 0;
     }
+    std::string accused_weapon = weapon_to_string[weapon_id];
+    std::string accused_location = loc_to_string[location];
+    player_manager->suggestion_check(p1->getCharacter(), p2->getCharacter(), accused_weapon, accused_location);
     
     //board->printBoard();
 
@@ -160,6 +151,36 @@ int Player_Manager::add_player(int player_id)
     return 1;
 }
 
+void Player_Manager::suggestion_check(std::string p1, std::string p2, std::string weapon, std::string loc){
+    std::map<int, Player*>::iterator it;
+    
+    for(it = player_list.begin(); it != player_list.end(); it++){
+        if(it->second->getCharacter() == p1){
+            break;
+        }
+    }
+    it++;
+    for(int i = 0; i < 5; i++){
+        if(it == player_list.end()){
+            it = player_list.begin();
+        }
+        if(it->second->hasCard(p2)){
+            std::cout << "from player " << it->second->getCharacter();
+            std::cout << " " << p2 << std::endl;
+            return;
+        }else if(it->second->hasCard(weapon)){
+            std::cout << "from player " << it->second->getCharacter();
+            std::cout << " " << weapon << std::endl;
+            return;
+        }else if(it->second->hasCard(loc)){
+            std::cout << "from player " << it->second->getCharacter();
+            std::cout << " " << loc << std::endl;
+            return;
+        }
+        it++;
+    }
+}
+
 Player* Player_Manager::getPlayer(int id){
     return player_list[id];
 }
@@ -185,6 +206,15 @@ std::string Player::getCharacter()
 
 void Player::addCard(Card a){
     hand.push_back(a);
+}
+
+bool Player::hasCard(std::string a){
+    for(int i = 0; i < hand.size(); i++){
+        if(hand[i].get_name() == a){
+            return true;
+        }
+    }
+    return false;
 }
 
 void Player::print_hand(){
