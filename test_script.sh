@@ -1,3 +1,4 @@
+#!/bin/sh
 clear
 gcc -c -o server.o server.c
 g++ -c -o server_to_game_interface.o server_to_game_interface.cpp

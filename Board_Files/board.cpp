@@ -245,3 +245,17 @@ bool Board::movePiece(std::string name, int location){
     }
     return false;
 }
+
+int Board::bytes_length(){
+    return 6;
+}
+
+void Board::getBytes(int* buffer){
+    std::string names_array[6] = {"MISS_SCARLETT", "PROFESSOR_PLUM",
+    "COLONEL_MUSTARD", "MRS_PEACOCK", "MR_GREEN", "MRS_WHITE"};
+    std::pair<int, int> board_data;
+    for(int i = 0; i < 6; i++){
+        board_data = findObject(names_array[i]);
+        buffer[i] = board_data.first;
+    }
+}

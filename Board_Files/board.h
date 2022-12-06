@@ -22,6 +22,9 @@ class Board{
         
         //moves p1 to loc 
         bool movePiece(std::string p1, int loc);
+
+        int bytes_length();
+        void getBytes(int*);
         
     private:
         std::pair<int, int> findObject(std::string);
