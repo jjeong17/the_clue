@@ -4,12 +4,16 @@ import struct
 import asyncio
 import aioconsole
 
+import time
+
 HOST = "127.0.0.1"
 PORT = 8687
 
 CLIENT_ID = 15
 
 global_game_id = -1
+
+start_time = time.time()
 
 class Connection_Manager:
     def __init__(self):
@@ -19,6 +23,10 @@ class Connection_Manager:
 def craft_checkin_message():
     # message_type for checkin = 0
     return struct.pack("!I", 0)
+
+def craft_periodic_checkin_message():
+    # message_type for periodic checkin = 5
+    return struct.pack("!I", 5)
 
 def craft_create_game_message():
     # message_type for create game = 14
@@ -75,10 +83,13 @@ async def parse_response(sock_fd) -> bytes:
         return data[8:].strip(b'\x00')
 
 
-async def manage_connection(conn: Connection_Manager, sock_fd):
-    # Send initial checkin:
-    sock_fd.send(prep_msg_for_send(CLIENT_ID, craft_checkin_message()))
+async def periodic_checkin(conn: Connection_Manager):
+    while True:
+        await asyncio.sleep(1)
+        msg = prep_msg_for_send(CLIENT_ID, craft_periodic_checkin_message())
+        await conn.requests.put(msg)
 
+async def manage_connection_i(conn: Connection_Manager, sock_fd):
     # Wait for response
     out = await parse_response(sock_fd)
     print(out)
@@ -88,6 +99,12 @@ async def manage_connection(conn: Connection_Manager, sock_fd):
         sock_fd.send(user_req)
         out = await parse_response(sock_fd)
         print(f"Message from server received: {out}")
+
+async def manage_connection(conn: Connection_Manager, sock_fd):
+    # Send initial checkin:
+    sock_fd.send(prep_msg_for_send(CLIENT_ID, craft_checkin_message()))
+
+    await asyncio.gather(periodic_checkin(conn), manage_connection_i(conn, sock_fd))
 
 async def shell(client_id, conn_manager: Connection_Manager):
     global global_game_id
@@ -155,7 +172,6 @@ async def shell(client_id, conn_manager: Connection_Manager):
         else:
             print("command format not recognized")
             continue
-            
             
 
 async def main():

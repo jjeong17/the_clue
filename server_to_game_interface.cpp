@@ -83,6 +83,11 @@ Response* parse_command(std::vector<Game*>* game_list, Command* command_in)
 
     switch (command_in->command_opcode)
     {
+        case 5:
+            // periodic checkin command
+            response = alloc_response(6, "loud and clear", strlen("loud and clear") + 1);
+            free_command(command_in);
+            return response;
         case 14:
             // New Game command
             response = parse_new_game_command(game_list, command_in);
