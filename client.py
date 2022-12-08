@@ -3,6 +3,7 @@ import struct
 
 import asyncio
 import aioconsole
+import PySimpleGUI as sg
 
 import time
 
@@ -172,16 +173,64 @@ async def shell(client_id, conn_manager: Connection_Manager):
         else:
             print("command format not recognized")
             continue
-            
 
 async def main():
 
     client_hello_message = prep_msg_for_send(CLIENT_ID, b'Hello server!')
 
     conn = Connection_Manager()
+    layout = [
+        [sg.Button('Study'), sg.Button('Hallway'), sg.Button('Hall'), sg.Button('Hallway'), sg.Button('Lounge')],
+        [sg.Button('Hallway'), sg.Button('Hallway'), sg.Button('Hallway')],
+        [sg.Button('Library'), sg.Button('Hallway'), sg.Button('Billiard Room'), sg.Button('Hallway'), sg.Button('Dining Room')],
+        [sg.Button('Hallway'), sg.Button('Hallway'), sg.Button('Hallway')],
+        [sg.Button('Conservatory'), sg.Button('Hallway'), sg.Button('Ballroom'), sg.Button('Hallway'), sg.Button('Kitchen')],
+        [sg.Button('Move')],
+        
+        [sg.Button('Suggest')],
+        [sg.Button('Accuse')],
 
+        [sg.Radio('Miss Scarlett', "PEOPLE", key = 'p1', default=False, visible=True),
+        sg.Radio('Professor Plum', "PEOPLE", key = 'p2', default=False, visible=True),
+        sg.Radio('Colonel Mustard', "PEOPLE", key = 'p3',default=False, visible=True),
+        sg.Radio('Mrs Peacock', "PEOPLE", key = 'p4',default=False, visible=True),
+        sg.Radio('Mr Green', "PEOPLE", key = 'p5',default=False, visible=True),
+        sg.Radio('Mrs White', "PEOPLE", key = 'p6',default=False, visible=True),
+        ],
+        [sg.Radio('Dagger', "WEAPON", key = 'w1', default=False, visible=True),
+        sg.Radio('Candlestick', "WEAPON", key = 'w2',default=False, visible=True),
+        sg.Radio('Revolver', "WEAPON", key = 'w3',default=False, visible=True),
+        sg.Radio('Rope', "WEAPON", key = 'w4',default=False, visible=True),
+        sg.Radio('Lead Pipe', "WEAPON", key = 'w5',default=False, visible=True),
+        sg.Radio('Spanner', "WEAPON", key = 'w6',default=False, visible=True),
+        ],
+        [sg.Radio('Study', "LOCATION", key = 'l1', default=False, visible=True),
+        sg.Radio('Hall', "LOCATION", key = 'l2', default=False, visible=True),
+        sg.Radio('Lounge', "LOCATION", key = 'l3', default=False, visible=True),
+        sg.Radio('Library', "LOCATION", key = 'l4', default=False, visible=True),
+        sg.Radio('Billiard Room', "LOCATION", key = 'l5', default=False, visible=True),
+        sg.Radio('Dining Room', "LOCATION", key = 'l6', default=False, visible=True),
+        sg.Radio('Conservatory', "LOCATION", key = 'l7', default=False, visible=True),
+        sg.Radio('Ballroom', "LOCATION", key = 'l8', default=False, visible=True),
+        sg.Radio('Kitchen', "LOCATION", key = 'l9', default=False, visible=True),
+        ]
+
+    ]
+    window = sg.Window('Title', layout)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
+        while True:
+            event, values = window.read()
+            print('You entered ', event)
+            if(event == 'Suggest' or event == 'Accuse'):
+                print("entered")
+                
+            if event == sg.WIN_CLOSED or event == 'Cancel':
+                break
+            if(values['p3'] == True):
+                print("it is true")
+            
+        
         # s.send(client_hello_message)
         # data = s.recv(8)
 
@@ -195,8 +244,8 @@ async def main():
 
         # print(f"Received: {data}")
 
-        await asyncio.gather(shell(CLIENT_ID, conn), manage_connection(conn, s))
+            await asyncio.gather(shell(CLIENT_ID, conn), manage_connection(conn, s))
         # await shell(client_id, s)
-
+        window.close()
 if __name__ == "__main__":
     asyncio.run(main())
