@@ -22,6 +22,7 @@ Response* parse_new_game_command(std::vector<Game*>*, Command*);
 Response* parse_join_game_command(std::vector<Game*>*, Command*);
 Response* parse_make_move_command(std::vector<Game*>*, Command*);
 Response* parse_make_suggestion_command(std::vector<Game*>*, Command*);
+Response* parse_periodic_checkin(std::vector<Game*>*, Command*);
 
 // List of all the current games
 // std::vector<Game*>* game_list;
@@ -85,7 +86,8 @@ Response* parse_command(std::vector<Game*>* game_list, Command* command_in)
     {
         case 5:
             // periodic checkin command
-            response = alloc_response(6, "loud and clear", strlen("loud and clear") + 1);
+            // response = alloc_response(6, "loud and clear", strlen("loud and clear") + 1);
+            response = parse_periodic_checkin(game_list, command_in);
             free_command(command_in);
             return response;
         case 14:
@@ -179,6 +181,61 @@ Response* parse_join_game_command(std::vector<Game*>* game_list, Command* comman
 
     // Success case: 23: join success retcode
     response = alloc_response(23, (char*)(&requested_game_id), 4);
+    return response;
+}
+
+Response* parse_periodic_checkin(std::vector<Game*>* game_list, Command* command_in)
+{
+    Response* response;
+    int game_id;
+    int player_id;
+    int game_index = -1;
+
+    int* character_locations;
+
+    char ret_game_id = 'n';
+    char whos_turn = 'n';
+    char player_0_pos = 'n';
+    char player_1_pos = 'n';
+    char player_2_pos = 'n';
+    char player_3_pos = 'n';
+    char player_4_pos = 'n';
+    char player_5_pos = 'n';
+
+    char loc_string[6] = {'\0'};    
+
+    // game id is args+0x0 interpreted as a 4-byte integer
+    game_id = *((int*)command_in->args);
+
+    // player_id is args+0x4 interpreted as a 4-byte integer
+    player_id = *((int*)(command_in->args + 4));
+
+    if (game_id == -1) // -1 Means the player has not yet joined a game
+    {
+        // 8: periodic checkin, don't update board 
+        response = alloc_response(8, "filler", strlen("filler") + 1);
+        return response;
+    }
+    for (int i = 0; i < game_list->size(); i++)
+    {
+        if ((*game_list)[i]->get_game_id() == game_id)
+        {
+            game_index = i;
+        }
+    }
+    if (game_index == -1)
+    {
+        // 7: Problem with periodic checkin retcode
+        response = alloc_response(7, "Periodic Checkin Problem: Game dne\n", strlen("Periodic Checkin Problem: Game dne\n") + 1);
+        return response;
+    }
+    character_locations = (*game_list)[game_index]->get_player_locations();
+    for (int i = 0; i < 6; i++)
+    {
+        loc_string[i] = (character_locations[i] + 1) & 0xFF;
+    }
+
+    response = alloc_response(6, loc_string, strlen(loc_string) + 1);
     return response;
 }
 

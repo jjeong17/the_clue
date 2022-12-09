@@ -27,7 +27,7 @@ def craft_checkin_message():
 
 def craft_periodic_checkin_message():
     # message_type for periodic checkin = 5
-    return struct.pack("!I", 5)
+    return struct.pack("!I", 5) + struct.pack("<i", global_game_id) + struct.pack("<I", CLIENT_ID)
 
 def craft_create_game_message():
     # message_type for create game = 14
@@ -53,6 +53,10 @@ def prep_msg_for_send(client_id: int, message: bytes):
     header = struct.pack("!III", magic_bytes, client_id, message_len)
 
     return header + message
+
+def update_board(player_locations):
+    for a in player_locations:
+        print(a - 1)
 
 async def parse_response(sock_fd) -> bytes:
     global global_game_id
@@ -80,6 +84,14 @@ async def parse_response(sock_fd) -> bytes:
         game_id = struct.unpack("<I", data[8:12])[0]
         global_game_id = game_id
         return f"Game with id: {global_game_id} successfully joined!"
+    elif response_opcode == 6:
+        # This is a response to a periodic checkin
+        player_locations = struct.unpack("bbbbbb", data[8:-1])
+        update_board(player_locations)
+        return 0
+    elif response_opcode == 8:
+        # response to periodic checkin, not in a game
+        return 0
     else:
         return data[8:].strip(b'\x00')
 
@@ -99,7 +111,8 @@ async def manage_connection_i(conn: Connection_Manager, sock_fd):
         user_req = await conn.requests.get()
         sock_fd.send(user_req)
         out = await parse_response(sock_fd)
-        print(f"Message from server received: {out}")
+        if out:
+            print(f"Message from server received: {out}")
 
 async def manage_connection(conn: Connection_Manager, sock_fd):
     # Send initial checkin:
@@ -562,27 +575,7 @@ async def main():
             if event == sg.WIN_CLOSED or event == 'Cancel':
                 break
             
-        
-        #THIS SECTION OF CODE NEEDS TO BE ABLE TO READ IN A RESPONSE
-        #FROM BACK END AND BE ABLE TO SEND OUT THE BYTES FROM THE ACTION
-        #TO THE BACK END
-
-
-        # s.send(client_hello_message)
-        # data = s.recv(8)
-
-        # magic_bytes, data_len = struct.unpack("!II", data)[:2]
-
-        # print(f"Received: ")
-        # print(f"Magic bytes: {hex(magic_bytes)}")
-        # print(f"Data length: {data_len}")
-
-        # data = s.recv(data_len)
-
-        # print(f"Received: {data}")
-
-            #await asyncio.gather(shell(CLIENT_ID, conn), manage_connection(conn, s))
-        # await shell(client_id, s)
+            await asyncio.gather(shell(CLIENT_ID, conn), manage_connection(conn, s))
         window.close()
 if __name__ == "__main__":
     asyncio.run(main())

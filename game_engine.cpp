@@ -45,6 +45,12 @@ int Game::end_game()
     return 0;
 }
 
+int* Game::get_player_locations()
+{
+    int* character_locations = board->getPlayerLocations();
+    return character_locations;
+}
+
 void Game::see_hand(int player_id){
     player_manager->getPlayer(player_id)->print_hand();
 }
