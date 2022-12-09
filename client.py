@@ -54,13 +54,78 @@ def prep_msg_for_send(client_id: int, message: bytes):
 
     return header + message
 
+def invLocationConvert(a):
+    
+    if(a == 0):
+        return 'studytext'
+    elif(a == 1):
+        return 'hw1text'
+    elif(a == 2):
+        return 'halltext'
+    elif(a == 3):
+        return 'hw2text'
+    elif(a == 4):
+        return 'loungetext'
+    elif(a == 5):
+        return 'hw3text'
+    elif(a == 6):
+        return 'hw4text'
+    elif(a == 7):
+        return 'hw5text'
+    elif(a == 8):
+        return 'librarytext'
+    elif(a == 9):
+        return 'hw6text'
+    elif(a == 10):
+        return 'billiardroomtext'
+    elif(a == 11):
+        return 'hw7text'
+    elif(a == 12):
+        return 'diningroomtext'
+    elif(a == 13):
+        return 'hw8text'
+    elif(a == 14):
+        return 'hw9text'
+    elif(a == 15):
+        return 'hw10text'
+    elif(a == 16):
+        return 'conservatorytext'
+    elif(a == 17):
+        return 'hw11text'
+    elif(a == 18):
+        return 'ballroomtext'
+    elif(a == 19):
+        return 'hw12text'
+    else:
+        return 'kitchentext'
+
 def update_board(player_locations):
     # a is a 6 element list, indicating the positions on the board of each of the 6 characters
     # "MISS_SCARLETT", "PROFESSOR_PLUM", "COLONEL_MUSTARD", "MRS_PEACOCK", "MR_GREEN", "MRS_WHITE"
     # in that order
     # The position of each player is a[i] - 1
-    for a in player_locations:
-        print(a - 1)
+    
+    temp = ""
+    text_loc = ""
+    for i in range(0, 21):
+        text_loc = invLocationConvert(i)
+        for a in player_locations:
+            if(player_locations[0] == i):
+                temp += "MISS SCARLETT\n"
+            if(player_locations[1] == i):
+                temp += "PROFESSOR PLUM\n"
+            if(player_locations[2] == i):
+                temp += "COLONEL MUSTARD\n"
+            if(player_locations[3] == i):
+                temp += "MRS PEACOCK\n"
+            if(player_locations[4] == i):
+                temp += "MR GREEN\n"
+            if(player_locations[5] == i):
+                temp += "MRS WHITE\n"
+        window[text_loc].update(temp)
+            
+        
+    
 
 async def parse_response(sock_fd) -> bytes:
     global global_game_id
@@ -347,6 +412,7 @@ def roomToMove(values):
         return -1
 
 async def gui_window_loop(layout):
+    global window
     window = sg.Window('THE CLUE', layout)
     while True:
         await asyncio.sleep(.1)
