@@ -520,7 +520,7 @@ async def main():
                 ]
             )
         ],
-        
+        [sg.Button('Create Game'), sg.Button('Join Game'), sg.InputText(key='gamenum')],
         [sg.Button('Move'), sg.Button('Suggest'), sg.Button('Accuse')],
         
 
@@ -556,6 +556,9 @@ async def main():
         while True:
             event, values = window.read()
             print('You entered ', event)
+
+            if(event == 'Join Game'):
+                print(values['gamenum'])
             if(event == 'Move'):
                 room = roomToMove(values)
                 print(room)
