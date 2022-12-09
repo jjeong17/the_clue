@@ -14,6 +14,8 @@ class Board{
         Board(std::string, std::string, std::string, std::string,
         std::string, std::string);
         
+        int* getPlayerLocations();
+
         //prints the current status of the board
         void printBoard();
         

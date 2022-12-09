@@ -105,6 +105,48 @@ std::string obj5, std::string obj6){
 
 }
 
+int* Board::getPlayerLocations()
+{
+    int* character_locations = (int*)calloc(6, sizeof(int));
+
+    for(int i = 0; i < num_locations; ++i){
+        for(int j = 0; j < main_board[i].size(); ++j){
+            if (main_board[i][j].getName() != "None")
+            {
+                if (main_board[i][j].getName() == "MISS_SCARLETT")
+                {
+                    character_locations[0] = i;
+                }
+                else if (main_board[i][j].getName() == "PROFESSOR_PLUM")
+                {
+                    character_locations[1] = i;
+                }
+                else if(main_board[i][j].getName() == "COLONEL_MUSTARD")
+                {
+                    character_locations[2] = i;
+                }
+                else if(main_board[i][j].getName() == "MRS_PEACOCK")
+                {
+                    character_locations[3] = i;
+                }
+                else if(main_board[i][j].getName() == "MR_GREEN")
+                {
+                    character_locations[4] = i;
+                }
+                else if(main_board[i][j].getName() == "MRS_WHITE")
+                {
+                    character_locations[5] = i;
+                }
+                else
+                {
+                    std::cout << "This should not be happening" << std::endl;
+                }
+            }
+        }
+    }
+    return character_locations;
+}
+
 void Board::printBoard(){
     std::cout << "Printing Board" << std::endl;
     for(int i = 0; i < num_locations; ++i){

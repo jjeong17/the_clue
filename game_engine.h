@@ -47,6 +47,8 @@ public:
     Game();
     ~Game();
     
+    int* get_player_locations();
+
     int add_player(int);
     int start_game();
     void see_hand(int);
@@ -61,8 +63,6 @@ public:
 class Player_Manager
 {
 private:
-    int num_players;
-    std::map<int, Player*> player_list;
     std::map<int, std::string> player_to_character;
     std::string characters[6] = {"MISS_SCARLETT", "PROFESSOR_PLUM",
     "COLONEL_MUSTARD", "MRS_PEACOCK", "MR_GREEN", "MRS_WHITE"};
@@ -73,7 +73,9 @@ public:
     void start_game(Deck*);
     void suggestion_check(std::string, std::string, std::string, std::string);
     int add_player(int);
-   
+
+    int num_players;
+    std::map<int, Player*> player_list;
     
     Player* getPlayer(int);
 };
