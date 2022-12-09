@@ -174,6 +174,115 @@ async def shell(client_id, conn_manager: Connection_Manager):
             print("command format not recognized")
             continue
 
+def interpretRadioButtons(values):
+
+    if(values['p1'] == True):
+        person = "MISS_SCARLETT"
+    elif(values['p2'] == True):
+        person = "PROFESSOR_PLUM"
+    elif(values['p3'] == True):
+        person = "COLONEL_MUSTARD"
+    elif(values['p4'] == True):
+        person = "MRS_PEACOCK"
+    elif(values['p5'] == True):
+        person = "MR_GREEN"
+    elif(values['p6'] == True):
+        person = "MRS_WHITE"
+    else:
+        person = ""
+
+    if(values['w1'] == True):
+        weapon = "DAGGER"
+    elif(values['w2'] == True):
+        weapon = "CANDLESTICK"
+    elif(values['w3'] == True):
+        weapon = "REVOLVER"
+    elif(values['w4'] == True):
+        weapon = "ROPE"
+    elif(values['w5'] == True):
+        weapon = "LEAD_PIPE"
+    elif(values['w6'] == True):
+        weapon = "SPANNER"
+    else:
+        weapon = ""
+
+    if(values['l1'] == True):
+        location = "STUDY"
+    elif(values['l2'] == True):
+        location = "HALL"
+    elif(values['l3'] == True):
+        location = "LOUNGE"
+    elif(values['l4'] == True):
+        location = "LIBRARY"
+    elif(values['l5'] == True):
+        location = "BILLIARD_ROOM"
+    elif(values['l6'] == True):
+        location = "DINING_ROOM"
+    elif(values['l7'] == True):
+        location = "CONSERVATORY"
+    elif(values['l8'] == True):
+        location = "BALLROOM"
+    elif(values['l9'] == True):
+        location = "KITCHEN"
+    else:
+        location = ""
+    return person, weapon, location
+
+def convertPlayer(person):
+    if(person == "MISS_SCARLETT"):
+        person = 1
+    elif(person == "PROFESSOR_PLUM"):
+        person = 2
+    elif(person == "COLONEL_MUSTARD"):
+        person = 3
+    elif(person == "MRS_PEACOCK"):
+        person = 4
+    elif(person == "MR_GREEN"):
+        person = 5
+    elif(person == "MRS_WHITE"):
+        person = 6
+    else:
+        person = -1
+
+def convertWeapon(weapon):
+    if(weapon == "DAGGER"):
+        weapon = 0
+    elif(weapon == "CANDLESTICK"):
+        weapon = 1
+    elif(weapon == "REVOLVER"):
+        weapon = 2
+    elif(weapon == "ROPE"):
+        weapon = 3
+    elif(weapon == "LEAD_PIPE"):
+        weapon = 4
+    elif(weapon == "SPANNER"):
+        weapon = 5
+    else:
+        weapon = -1
+
+
+def convertLocation(place):
+    if(place == "STUDY"):
+        return 0
+    elif(place == "HALL"):
+        return 2
+    elif(place == "LOUNGE"):
+        return 4
+    elif(place == "LIBRARY"):
+        return 8
+    elif(place == "BILLIARD_ROOM"):
+        return 10
+    elif(place == "DINING_ROOM"):
+        return 12
+    elif(place == "CONSERVATORY"):
+        return 16
+    elif(place == "BALLROOM"):
+        return 18
+    elif(place == "KITCHEN"):
+        return 20
+    else:
+        return -1
+
 async def main():
 
     client_hello_message = prep_msg_for_send(CLIENT_ID, b'Hello server!')
@@ -353,7 +462,7 @@ async def main():
             )
         ],
         
-        [sg.Button('Move'), sg.Button('Suggest'), sg.Button('Accuse')],
+        [sg.Button('Suggest'), sg.Button('Accuse')],
         
 
         [sg.Radio('Miss Scarlett', "PEOPLE", key = 'p1', default=False, visible=True),
@@ -389,16 +498,28 @@ async def main():
             event, values = window.read()
             print('You entered ', event)
             if(event == 'Suggest' or event == 'Accuse'):
-                #print(values['studytext'])
-                window['studytext'].update('Scarlett')
-                print("entered")
+                interpretRadioButtons(values)
+                
+                p, w, l = interpretRadioButtons(values)
+                print(p)
+                print(w)
+                print(l)
+                p_byte = convertPlayer(p)
+                w_byte = convertWeapon(w)
+                l_byte = convertLocation(l)
+                #we need to pack the p_byte, w_byte, and l_byte
+                # to the server (these will match what the backend expects)
+            if(event == 'MOVE'):
                 
             if event == sg.WIN_CLOSED or event == 'Cancel':
                 break
-            if(values['p3'] == True):
-                print("it is true")
             
         
+        #THIS SECTION OF CODE NEEDS TO BE ABLE TO READ IN A RESPONSE
+        #FROM BACK END AND BE ABLE TO SEND OUT THE BYTES FROM THE ACTION
+        #TO THE BACK END
+
+
         # s.send(client_hello_message)
         # data = s.recv(8)
 
