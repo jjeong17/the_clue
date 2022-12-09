@@ -283,6 +283,52 @@ def convertLocation(place):
     else:
         return -1
 
+def roomToMove(values):
+    if(values['study'] == True):
+        return 0
+    elif(values['hw1'] == True):
+        return 1
+    elif(values['hall'] == True):
+        return 2
+    elif(values['hw2'] == True):
+        return 3
+    elif(values['lounge'] == True):
+        return 4
+    elif(values['hw3'] == True):
+        return 5
+    elif(values['hw4'] == True):
+        return 6
+    elif(values['hw5'] == True):
+        return 7
+    elif(values['library'] == True):
+        return 8
+    elif(values['hw6'] == True):
+        return 9
+    elif(values['billiardroom'] == True):
+        return 10
+    elif(values['hw7'] == True):
+        return 11
+    elif(values['diningroom'] == True):
+        return 12
+    elif(values['hw8'] == True):
+        return 13
+    elif(values['hw9'] == True):
+        return 14
+    elif(values['hw10'] == True):
+        return 15
+    elif(values['conservatory'] == True):
+        return 16
+    elif(values['hw11'] == True):
+        return 17
+    elif(values['ballroom'] == True):
+        return 18
+    elif(values['hw12'] == True):
+        return 19
+    elif(values['kitchen'] == True):
+        return 20
+    else:
+        return -1
+
 async def main():
 
     client_hello_message = prep_msg_for_send(CLIENT_ID, b'Hello server!')
@@ -294,7 +340,7 @@ async def main():
         [
             sg.Frame('Study',
                 [
-                    [sg.Button('Move To', key='study')],
+                    [sg.Radio('',"MOVE", key='study')],
                     [sg.Text('', size=(16,6), key='studytext')]
                     
                 ]
@@ -302,7 +348,7 @@ async def main():
 
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw1')],
+                    [sg.Radio('',"MOVE",  key='hw1')],
                     [sg.Text('', size=(16,6), key='hw1text')]
                     
                 ]
@@ -310,7 +356,7 @@ async def main():
 
             sg.Frame('Hall',
                 [
-                    [sg.Button('Move To',  key='hall')],
+                    [sg.Radio('',"MOVE",  key='hall')],
                     [sg.Text('', size=(16,6), key='halltext')]
                     
                 ]
@@ -318,7 +364,7 @@ async def main():
 
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw2')],
+                    [sg.Radio('',"MOVE",  key='hw2')],
                     [sg.Text('', size=(16,6), key='hw2text')]
                     
                 ]
@@ -326,7 +372,7 @@ async def main():
 
             sg.Frame('Lounge',
                 [
-                    [sg.Button('Move To',  key='lounge')],
+                    [sg.Radio('',"MOVE",  key='lounge')],
                     [sg.Text('', size=(16,6), key='loungetext')]
                     
                 ]
@@ -335,7 +381,7 @@ async def main():
         [
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw3')],
+                    [sg.Radio('',"MOVE",  key='hw3')],
                     [sg.Text('', size=(16,6), key='hw3text')]
                     
                 ]
@@ -343,7 +389,7 @@ async def main():
             sg.HSeparator(pad=(14, 0)), 
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw4')],
+                    [sg.Radio('',"MOVE",  key='hw4')],
                     [sg.Text('', size=(16,6), key='hw4text')]
                     
                 ]
@@ -351,7 +397,7 @@ async def main():
             sg.HSeparator(pad=(14, 0)), 
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw5')],
+                    [sg.Radio('',"MOVE",  key='hw5')],
                     [sg.Text('', size=(16,6), key='hw5text')]
                     
                 ]
@@ -361,7 +407,7 @@ async def main():
         
             sg.Frame('Library',
                 [
-                    [sg.Button('Move To',  key='library')],
+                    [sg.Radio('',"MOVE",  key='library')],
                     [sg.Text('', size=(16,6), key='librarytext')]
                     
                 ]
@@ -369,7 +415,7 @@ async def main():
 
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw6')],
+                    [sg.Radio('',"MOVE",  key='hw6')],
                     [sg.Text('', size=(16,6), key='hw6text')]
                     
                 ]
@@ -377,21 +423,21 @@ async def main():
 
             sg.Frame('Billiard Room',
                 [
-                    [sg.Button('Move To',  key='billiardroom')],
+                    [sg.Radio('',"MOVE",  key='billiardroom')],
                     [sg.Text('', size=(16,6), key='billiardroomtext')]
                     
                 ]
             ),
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw7')],
+                    [sg.Radio('',"MOVE",  key='hw7')],
                     [sg.Text('', size=(16,6), key='hw7text')]
                     
                 ]
             ),
             sg.Frame('Dining Room',
                 [
-                    [sg.Button('Move To',  key='diningroom')],
+                    [sg.Radio('',"MOVE",  key='diningroom')],
                     [sg.Text('', size=(16,6), key='diningroomtext')]
                     
                 ]
@@ -401,7 +447,7 @@ async def main():
         
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw8')],
+                    [sg.Radio('',"MOVE",  key='hw8')],
                     [sg.Text('', size=(16,6), key='hw8text')]
                     
                 ]
@@ -409,7 +455,7 @@ async def main():
             sg.HSeparator(pad=(14, 0)),
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw9')],
+                    [sg.Radio('',"MOVE",  key='hw9')],
                     [sg.Text('', size=(16,6), key='hw9text')]
                     
                 ]
@@ -417,7 +463,7 @@ async def main():
             sg.HSeparator(pad=(14, 0)), 
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw10')],
+                    [sg.Radio('',"MOVE",  key='hw10')],
                     [sg.Text('', size=(16,6), key='hw10text')]
                     
                 ]
@@ -427,42 +473,42 @@ async def main():
         
             sg.Frame('Conservatory',
                 [
-                    [sg.Button('Move To',  key='conservatory')],
+                    [sg.Radio('',"MOVE",  key='conservatory')],
                     [sg.Text('', size=(16,6), key='conservatorytext')]
                     
                 ]
             ), 
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw11')],
+                    [sg.Radio('',"MOVE",  key='hw11')],
                     [sg.Text('', size=(16,6), key='hw11text')]
                     
                 ]
             ), 
             sg.Frame('Ballroom',
                 [
-                    [sg.Button('Move To',  key='ballroom')],
+                    [sg.Radio('',"MOVE",  key='ballroom')],
                     [sg.Text('', size=(16,6), key='ballroomtext')]
                     
                 ]
             ), 
             sg.Frame('Hallway',
                 [
-                    [sg.Button('Move To',  key='hw12')],
+                    [sg.Radio('',"MOVE",  key='hw12')],
                     [sg.Text('', size=(16,6), key='hw12text')]
                     
                 ]
             ),
             sg.Frame('Kitchen',
                 [
-                    [sg.Button('Move To',  key='kitchen')],
+                    [sg.Radio('',"MOVE",  key='kitchen')],
                     [sg.Text('', size=(16,6), key='kitchentext')]
                     
                 ]
             )
         ],
         
-        [sg.Button('Suggest'), sg.Button('Accuse')],
+        [sg.Button('Move'), sg.Button('Suggest'), sg.Button('Accuse')],
         
 
         [sg.Radio('Miss Scarlett', "PEOPLE", key = 'p1', default=False, visible=True),
@@ -497,8 +543,10 @@ async def main():
         while True:
             event, values = window.read()
             print('You entered ', event)
+            if(event == 'Move'):
+                room = roomToMove(values)
+                print(room)
             if(event == 'Suggest' or event == 'Accuse'):
-                interpretRadioButtons(values)
                 
                 p, w, l = interpretRadioButtons(values)
                 print(p)
@@ -509,8 +557,8 @@ async def main():
                 l_byte = convertLocation(l)
                 #we need to pack the p_byte, w_byte, and l_byte
                 # to the server (these will match what the backend expects)
-            if(event == 'MOVE'):
-                
+            
+
             if event == sg.WIN_CLOSED or event == 'Cancel':
                 break
             
