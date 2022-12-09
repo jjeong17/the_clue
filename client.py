@@ -55,6 +55,10 @@ def prep_msg_for_send(client_id: int, message: bytes):
     return header + message
 
 def update_board(player_locations):
+    # a is a 6 element list, indicating the positions on the board of each of the 6 characters
+    # "MISS_SCARLETT", "PROFESSOR_PLUM", "COLONEL_MUSTARD", "MRS_PEACOCK", "MR_GREEN", "MRS_WHITE"
+    # in that order
+    # The position of each player is a[i] - 1
     for a in player_locations:
         print(a - 1)
 
