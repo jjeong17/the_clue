@@ -342,6 +342,35 @@ def roomToMove(values):
     else:
         return -1
 
+async def gui_window_loop(layout):
+    window = sg.Window('THE CLUE', layout)
+    while True:
+        await asyncio.sleep(.1)
+        event, values = window.read()
+        print('You entered ', event)
+
+        if(event == 'Join Game'):
+            print(values['gamenum'])
+        if(event == 'Move'):
+            room = roomToMove(values)
+            print(room)
+        if(event == 'Suggest' or event == 'Accuse'):
+            
+            p, w, l = interpretRadioButtons(values)
+            print(p)
+            print(w)
+            print(l)
+            p_byte = convertPlayer(p)
+            w_byte = convertWeapon(w)
+            l_byte = convertLocation(l)
+            #we need to pack the p_byte, w_byte, and l_byte
+            # to the server (these will match what the backend expects)
+        
+
+        if event == sg.WIN_CLOSED or event == 'Cancel':
+            break
+    window.close()
+
 async def main():
 
     client_hello_message = prep_msg_for_send(CLIENT_ID, b'Hello server!')
@@ -550,35 +579,10 @@ async def main():
         ]
 
     ]
-    window = sg.Window('THE CLUE', layout)
+
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.connect((HOST, PORT))
-        while True:
-            event, values = window.read()
-            print('You entered ', event)
+        s.connect((HOST, PORT))            
+        await asyncio.gather(gui_window_loop(layout), manage_connection(conn, s))
 
-            if(event == 'Join Game'):
-                print(values['gamenum'])
-            if(event == 'Move'):
-                room = roomToMove(values)
-                print(room)
-            if(event == 'Suggest' or event == 'Accuse'):
-                
-                p, w, l = interpretRadioButtons(values)
-                print(p)
-                print(w)
-                print(l)
-                p_byte = convertPlayer(p)
-                w_byte = convertWeapon(w)
-                l_byte = convertLocation(l)
-                #we need to pack the p_byte, w_byte, and l_byte
-                # to the server (these will match what the backend expects)
-            
-
-            if event == sg.WIN_CLOSED or event == 'Cancel':
-                break
-            
-            await asyncio.gather(shell(CLIENT_ID, conn), manage_connection(conn, s))
-        window.close()
 if __name__ == "__main__":
     asyncio.run(main())
