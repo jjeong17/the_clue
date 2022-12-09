@@ -193,15 +193,6 @@ Response* parse_periodic_checkin(std::vector<Game*>* game_list, Command* command
 
     int* character_locations;
 
-    char ret_game_id = 'n';
-    char whos_turn = 'n';
-    char player_0_pos = 'n';
-    char player_1_pos = 'n';
-    char player_2_pos = 'n';
-    char player_3_pos = 'n';
-    char player_4_pos = 'n';
-    char player_5_pos = 'n';
-
     char loc_string[6] = {'\0'};    
 
     // game id is args+0x0 interpreted as a 4-byte integer
