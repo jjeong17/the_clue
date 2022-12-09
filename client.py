@@ -179,16 +179,182 @@ async def main():
     client_hello_message = prep_msg_for_send(CLIENT_ID, b'Hello server!')
 
     conn = Connection_Manager()
+    #horizontal_hallway = sg.Button('Hallway', size=(16, 4))
+    #vertical_hallway = sg.Button('Hallway', size=(8, 12))
     layout = [
-        [sg.Button('Study'), sg.Button('Hallway'), sg.Button('Hall'), sg.Button('Hallway'), sg.Button('Lounge')],
-        [sg.Button('Hallway'), sg.Button('Hallway'), sg.Button('Hallway')],
-        [sg.Button('Library'), sg.Button('Hallway'), sg.Button('Billiard Room'), sg.Button('Hallway'), sg.Button('Dining Room')],
-        [sg.Button('Hallway'), sg.Button('Hallway'), sg.Button('Hallway')],
-        [sg.Button('Conservatory'), sg.Button('Hallway'), sg.Button('Ballroom'), sg.Button('Hallway'), sg.Button('Kitchen')],
-        [sg.Button('Move')],
+        [
+            sg.Frame('Study',
+                [
+                    [sg.Button('Move To', key='study')],
+                    [sg.Text('', size=(16,6), key='studytext')]
+                    
+                ]
+            ),
+
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw1')],
+                    [sg.Text('', size=(16,6), key='hw1text')]
+                    
+                ]
+            ),
+
+            sg.Frame('Hall',
+                [
+                    [sg.Button('Move To',  key='hall')],
+                    [sg.Text('', size=(16,6), key='halltext')]
+                    
+                ]
+            ),
+
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw2')],
+                    [sg.Text('', size=(16,6), key='hw2text')]
+                    
+                ]
+            ),
+
+            sg.Frame('Lounge',
+                [
+                    [sg.Button('Move To',  key='lounge')],
+                    [sg.Text('', size=(16,6), key='loungetext')]
+                    
+                ]
+            )
+        ],
+        [
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw3')],
+                    [sg.Text('', size=(16,6), key='hw3text')]
+                    
+                ]
+            ),
+            sg.HSeparator(pad=(14, 0)), 
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw4')],
+                    [sg.Text('', size=(16,6), key='hw4text')]
+                    
+                ]
+            ),
+            sg.HSeparator(pad=(14, 0)), 
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw5')],
+                    [sg.Text('', size=(16,6), key='hw5text')]
+                    
+                ]
+            )
+        ],
+        [
         
-        [sg.Button('Suggest')],
-        [sg.Button('Accuse')],
+            sg.Frame('Library',
+                [
+                    [sg.Button('Move To',  key='library')],
+                    [sg.Text('', size=(16,6), key='librarytext')]
+                    
+                ]
+            ),
+
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw6')],
+                    [sg.Text('', size=(16,6), key='hw6text')]
+                    
+                ]
+            ), 
+
+            sg.Frame('Billiard Room',
+                [
+                    [sg.Button('Move To',  key='billiardroom')],
+                    [sg.Text('', size=(16,6), key='billiardroomtext')]
+                    
+                ]
+            ),
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw7')],
+                    [sg.Text('', size=(16,6), key='hw7text')]
+                    
+                ]
+            ),
+            sg.Frame('Dining Room',
+                [
+                    [sg.Button('Move To',  key='diningroom')],
+                    [sg.Text('', size=(16,6), key='diningroomtext')]
+                    
+                ]
+            )
+        ],
+        [
+        
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw8')],
+                    [sg.Text('', size=(16,6), key='hw8text')]
+                    
+                ]
+            ),
+            sg.HSeparator(pad=(14, 0)),
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw9')],
+                    [sg.Text('', size=(16,6), key='hw9text')]
+                    
+                ]
+            ),
+            sg.HSeparator(pad=(14, 0)), 
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw10')],
+                    [sg.Text('', size=(16,6), key='hw10text')]
+                    
+                ]
+            )
+        ],
+        [
+        
+            sg.Frame('Conservatory',
+                [
+                    [sg.Button('Move To',  key='conservatory')],
+                    [sg.Text('', size=(16,6), key='conservatorytext')]
+                    
+                ]
+            ), 
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw11')],
+                    [sg.Text('', size=(16,6), key='hw11text')]
+                    
+                ]
+            ), 
+            sg.Frame('Ballroom',
+                [
+                    [sg.Button('Move To',  key='ballroom')],
+                    [sg.Text('', size=(16,6), key='ballroomtext')]
+                    
+                ]
+            ), 
+            sg.Frame('Hallway',
+                [
+                    [sg.Button('Move To',  key='hw12')],
+                    [sg.Text('', size=(16,6), key='hw12text')]
+                    
+                ]
+            ),
+            sg.Frame('Kitchen',
+                [
+                    [sg.Button('Move To',  key='kitchen')],
+                    [sg.Text('', size=(16,6), key='kitchentext')]
+                    
+                ]
+            )
+        ],
+        
+        [sg.Button('Move'), sg.Button('Suggest'), sg.Button('Accuse')],
+        
 
         [sg.Radio('Miss Scarlett', "PEOPLE", key = 'p1', default=False, visible=True),
         sg.Radio('Professor Plum', "PEOPLE", key = 'p2', default=False, visible=True),
@@ -216,13 +382,15 @@ async def main():
         ]
 
     ]
-    window = sg.Window('Title', layout)
+    window = sg.Window('THE CLUE', layout)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))
         while True:
             event, values = window.read()
             print('You entered ', event)
             if(event == 'Suggest' or event == 'Accuse'):
+                #print(values['studytext'])
+                window['studytext'].update('Scarlett')
                 print("entered")
                 
             if event == sg.WIN_CLOSED or event == 'Cancel':
@@ -244,7 +412,7 @@ async def main():
 
         # print(f"Received: {data}")
 
-            await asyncio.gather(shell(CLIENT_ID, conn), manage_connection(conn, s))
+            #await asyncio.gather(shell(CLIENT_ID, conn), manage_connection(conn, s))
         # await shell(client_id, s)
         window.close()
 if __name__ == "__main__":
