@@ -13,6 +13,7 @@ PORT = 8687
 global_window = 0
 
 CLIENT_ID = 15
+CLIENT_CHARACTER = "MISS SCARLETT"
 
 global_game_id = -1
 
@@ -45,6 +46,9 @@ def craft_make_move_message(move_option: int):
 
 def craft_make_suggestion_message(other_player_id: int, weapon_id: int, location: int):
     return struct.pack("!I", 36) + struct.pack("<I", global_game_id) + struct.pack("<I", CLIENT_ID) + struct.pack("<I", other_player_id) + struct.pack("<I", weapon_id) + struct.pack("<I", location)
+
+def craft_make_accusation_message(other_player_id: int, weapon_id: int, location: int):
+    return struct.pack("!I", 39) + struct.pack("<I", global_game_id) + struct.pack("<I", CLIENT_ID) + struct.pack("<I", other_player_id) + struct.pack("<I", weapon_id) + struct.pack("<I", location)
 
 def prep_msg_for_send(client_id: int, message: bytes):
     magic_bytes = 0x12345678
@@ -148,11 +152,11 @@ async def parse_response(sock_fd) -> bytes:
     if response_opcode == 21:
         game_id = struct.unpack("<I", data[8:12])[0]
         global_game_id = game_id
-        return f"Game with id: {global_game_id} successfully created!"
+        return f"Game with id: {global_game_id} successfully created!\n You are {CLIENT_CHARACTER}"
     elif response_opcode == 23:
         game_id = struct.unpack("<I", data[8:12])[0]
         global_game_id = game_id
-        return f"Game with id: {global_game_id} successfully joined!"
+        return f"Game with id: {global_game_id} successfully joined!\n You are {CLIENT_CHARACTER}"
     elif response_opcode == 6:
         # This is a response to a periodic checkin
         player_locations = struct.unpack("bbbbbb", data[8:-1])
@@ -161,6 +165,13 @@ async def parse_response(sock_fd) -> bytes:
     elif response_opcode == 8:
         # response to periodic checkin, not in a game
         return 0
+    elif response_opcode == 70:
+        # Correct Suggestion
+        print("Your Suggestion was correct! You win")
+    elif response_opcode == 71:
+        # Incorrect Suggestion
+        print("Your Suggestion was incorrect: You are eliminated")
+        exit(0)
     else:
         return data[8:].strip(b'\x00')
 
@@ -325,6 +336,7 @@ def convertPlayer(person):
         person = 6
     else:
         person = -1
+    return person
 
 def convertWeapon(weapon):
     if(weapon == "DAGGER"):
@@ -341,6 +353,7 @@ def convertWeapon(weapon):
         weapon = 5
     else:
         weapon = -1
+    return weapon
 
 
 def convertLocation(place):
@@ -422,10 +435,10 @@ async def gui_window_loop(client_id, conn_manager):
         if (event == 'Create Game'):
             msg = prep_msg_for_send(client_id, craft_create_game_message())
             await conn_manager.requests.put(msg)
-        elif(event == 'Join Game'):
-            msg = prep_msg_for_send(client_id, craft_join_game_message(values['gamenum']))
+        elif (event == 'Join Game'):
+            msg = prep_msg_for_send(client_id, craft_join_game_message(int(values['gamenum'])))
             await conn_manager.requests.put(msg)
-        elif(event == 'Move'):
+        elif (event == 'Move'):
             if (global_game_id == -1):
                 print("You have not joined a game!")
                 continue
@@ -436,21 +449,26 @@ async def gui_window_loop(client_id, conn_manager):
             msg = prep_msg_for_send(client_id, craft_make_move_message(room))
             await conn_manager.requests.put(msg)
             continue        
-        if(event == 'Suggest' or event == 'Accuse'):
-            
+        elif (event == 'Suggest' or event == 'Accuse'):
             p, w, l = interpretRadioButtons(values)
-            print(p)
-            print(w)
-            print(l)
             p_byte = convertPlayer(p)
             w_byte = convertWeapon(w)
             l_byte = convertLocation(l)
-            #we need to pack the p_byte, w_byte, and l_byte
-            # to the server (these will match what the backend expects)
-        
-
-        if event == sg.WIN_CLOSED or event == 'Cancel':
+            print(p_byte)
+            print(w_byte)
+            print(l_byte)
+            if event == 'Suggest':
+                msg = prep_msg_for_send(client_id, craft_make_suggestion_message(p_byte, w_byte, l_byte))
+                await conn_manager.requests.put(msg)
+                continue
+            else:
+                msg = prep_msg_for_send(client_id, craft_make_accusation_message(p_byte, w_byte, l_byte))
+                await conn_manager.requests.put(msg)
+                continue
+        elif event == sg.WIN_CLOSED or event == 'Cancel':
             break
+        else:
+            print("Unrecognized command from GUI")
     global_window.close()
 
 async def main():
