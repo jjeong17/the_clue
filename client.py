@@ -10,6 +10,8 @@ import time
 HOST = "127.0.0.1"
 PORT = 8687
 
+global_window = 0
+
 CLIENT_ID = 15
 
 global_game_id = -1
@@ -54,13 +56,76 @@ def prep_msg_for_send(client_id: int, message: bytes):
 
     return header + message
 
+def invLocationConvert(a):
+    
+    if(a == 0):
+        return 'studytext'
+    elif(a == 1):
+        return 'hw1text'
+    elif(a == 2):
+        return 'halltext'
+    elif(a == 3):
+        return 'hw2text'
+    elif(a == 4):
+        return 'loungetext'
+    elif(a == 5):
+        return 'hw3text'
+    elif(a == 6):
+        return 'hw4text'
+    elif(a == 7):
+        return 'hw5text'
+    elif(a == 8):
+        return 'librarytext'
+    elif(a == 9):
+        return 'hw6text'
+    elif(a == 10):
+        return 'billiardroomtext'
+    elif(a == 11):
+        return 'hw7text'
+    elif(a == 12):
+        return 'diningroomtext'
+    elif(a == 13):
+        return 'hw8text'
+    elif(a == 14):
+        return 'hw9text'
+    elif(a == 15):
+        return 'hw10text'
+    elif(a == 16):
+        return 'conservatorytext'
+    elif(a == 17):
+        return 'hw11text'
+    elif(a == 18):
+        return 'ballroomtext'
+    elif(a == 19):
+        return 'hw12text'
+    else:
+        return 'kitchentext'
+
 def update_board(player_locations):
+    global global_window
     # player_locations is a 6 element list, indicating the positions on the board of each of the 6 characters
     # "MISS_SCARLETT", "PROFESSOR_PLUM", "COLONEL_MUSTARD", "MRS_PEACOCK", "MR_GREEN", "MRS_WHITE"
     # in that order
     # The position of each player is player_locations[i] - 1
-    for a in player_locations:
-        print(a - 1)
+
+    temp = ""
+    text_loc = ""
+    for i in range(0, 21):
+        text_loc = invLocationConvert(i)
+        temp = ""
+        if(player_locations[0] - 1 == i):
+            temp += "MISS SCARLETT\n"
+        if(player_locations[1] - 1 == i):
+            temp += "PROFESSOR PLUM\n"
+        if(player_locations[2] - 1 == i):
+            temp += "COLONEL MUSTARD\n"
+        if(player_locations[3] - 1 == i):
+            temp += "MRS PEACOCK\n"
+        if(player_locations[4] - 1 == i):
+            temp += "MR GREEN\n"
+        if(player_locations[5] - 1 == i):
+            temp += "MRS WHITE\n"
+        global_window[text_loc].update(temp)
 
 async def parse_response(sock_fd) -> bytes:
     global global_game_id
@@ -346,18 +411,31 @@ def roomToMove(values):
     else:
         return -1
 
-async def gui_window_loop(layout):
-    window = sg.Window('THE CLUE', layout)
+async def gui_window_loop(client_id, conn_manager):
+    global global_window
+    global global_game_id
     while True:
         await asyncio.sleep(.1)
-        event, values = window.read()
+        event, values = global_window.read()
         print('You entered ', event)
 
-        if(event == 'Join Game'):
-            print(values['gamenum'])
-        if(event == 'Move'):
+        if (event == 'Create Game'):
+            msg = prep_msg_for_send(client_id, craft_create_game_message())
+            await conn_manager.requests.put(msg)
+        elif(event == 'Join Game'):
+            msg = prep_msg_for_send(client_id, craft_join_game_message(values['gamenum']))
+            await conn_manager.requests.put(msg)
+        elif(event == 'Move'):
+            if (global_game_id == -1):
+                print("You have not joined a game!")
+                continue
             room = roomToMove(values)
-            print(room)
+            if room < 0 or room > 20:
+                print("Invalid move option!")
+                continue
+            msg = prep_msg_for_send(client_id, craft_make_move_message(room))
+            await conn_manager.requests.put(msg)
+            continue        
         if(event == 'Suggest' or event == 'Accuse'):
             
             p, w, l = interpretRadioButtons(values)
@@ -373,12 +451,10 @@ async def gui_window_loop(layout):
 
         if event == sg.WIN_CLOSED or event == 'Cancel':
             break
-    window.close()
+    global_window.close()
 
 async def main():
-
-    client_hello_message = prep_msg_for_send(CLIENT_ID, b'Hello server!')
-
+    global global_window
     conn = Connection_Manager()
     #horizontal_hallway = sg.Button('Hallway', size=(16, 4))
     #vertical_hallway = sg.Button('Hallway', size=(8, 12))
@@ -584,9 +660,10 @@ async def main():
 
     ]
 
+    global_window = sg.Window('THE CLUE', layout)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, PORT))            
-        await asyncio.gather(gui_window_loop(layout), manage_connection(conn, s))
+        await asyncio.gather(gui_window_loop(CLIENT_ID, conn), manage_connection(conn, s))
 
 if __name__ == "__main__":
     asyncio.run(main())
